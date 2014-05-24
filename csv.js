@@ -87,9 +87,12 @@
     };
 
     CSV.prototype.encode = function(array) {
-      var data, encoded, k, object, v, values, _, _i, _len;
+      var complete, data, k, object, response, stream, v, values, _, _i, _len;
+      stream = this.options.stream;
+      complete = this.options.done;
+      response = {};
       if (this.options.header) {
-        encoded = format.encode((function() {
+        response.data = format.encode((function() {
           var _ref, _results;
           _ref = array[0];
           _results = [];
@@ -101,12 +104,12 @@
         })());
         data = array.slice(1);
       } else {
-        encoded = "";
+        response.data = "";
         data = array;
       }
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         object = data[_i];
-        values = (function() {
+        values = format.encode((function() {
           var _results;
           _results = [];
           for (_ in object) {
@@ -114,10 +117,17 @@
             _results.push(v);
           }
           return _results;
-        })();
-        encoded += format.encode(values);
+        })());
+        if (confirm["function"](stream)) {
+          stream(values);
+        } else {
+          response.data += values;
+        }
       }
-      return encoded;
+      if (confirm["function"](complete)) {
+        complete(response);
+      }
+      return response;
     };
 
     CSV.prototype.parse = function(text) {
@@ -142,7 +152,7 @@
             object[fields[index]] = format.decode(value);
           }
           if (confirm["function"](stream)) {
-            stream.call(this, object);
+            stream(object);
           } else {
             data.push(object);
           }
@@ -161,7 +171,7 @@
             object.push(format.decode(value));
           }
           if (confirm["function"](stream)) {
-            stream.call(this, object);
+            stream(object);
           } else {
             data.push(object);
           }
@@ -171,7 +181,7 @@
         };
       }
       if (confirm["function"](complete)) {
-        complete.call(this, response);
+        complete(response);
       }
       return response;
     };

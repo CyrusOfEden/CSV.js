@@ -48,17 +48,28 @@ class CSV
 
   # Encode supplied array into CSV
   encode: (array) =>
+    stream = @options.stream
+    complete = @options.done
+    response = {}
+
     if @options.header
-      encoded = format.encode(k for k, _ of array[0])
+      response.data = format.encode(k for k, _ of array[0])
       data = array.slice(1)
     else
-      encoded = ""
+      response.data = ""
       data = array
-    for object in data
-      values = (v for _, v of object)
-      encoded += format.encode(values)
-    encoded
 
+    for object in data
+      values = format.encode(v for _, v of object)
+      if confirm.function(stream)
+        stream(values)
+      # Otherwise
+      else
+        # Push the object to data
+        response.data += values
+
+    complete(response) if confirm.function(complete)
+    response
 
   # Parse the inputted text, assuming that
   # string values are not delimited by quotes
@@ -85,7 +96,7 @@ class CSV
           object[fields[index]] = format.decode(value)
         # If stream is a function
         if confirm.function(stream)
-          stream.call(@, object)
+          stream(object)
         # Otherwise
         else
           # Push the object to data
@@ -107,7 +118,7 @@ class CSV
           object.push(format.decode(value))
         # If stream is a function
         if confirm.function(stream)
-          stream.call(@, object)
+          stream(object)
         # Otherwise
         else
           # Push the object to data
@@ -117,7 +128,7 @@ class CSV
         data: data
       }
     # Call the complete function if provided
-    complete.call(@, response) if confirm.function(complete)
+    complete(response) if confirm.function(complete)
     # Return response
     response
 
