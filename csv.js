@@ -20,7 +20,8 @@
   format = {
     value: function(string) {
       return string.replace(/(^\s+|\s+$)/g, '').
-                    replace(/|(^")|("$)|[\n|\r]/g, '').
+                    replace(/(^")|("$)/g, '').
+                    replace(/[\n|\r]/g, '').
                     replace(/\"\"/, '"');
     },
     decode: function(string) {
