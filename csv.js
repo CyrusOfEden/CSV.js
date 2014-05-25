@@ -67,7 +67,7 @@
 
     this.options = {};
     this.options.line = confirm.existance(options.line) ? options.line : /(\n|\r)/;
-    this.options.delimiter = confirm.existance(options.delimiter) ? options.delimiter : COMMA;
+    this.options.delimiter = confirm.existance(options.delimiter) ? options.delimiter : ',';
     this.options.header = confirm.existance(options.header) ? options.header : false;
     this.options.stream = confirm.existance(options.stream) ? options.stream : undefined;
     this.options.done = confirm.existance(options.done) ? options.done : undefined;
