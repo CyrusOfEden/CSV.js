@@ -19,10 +19,13 @@
   // Format helper
   format = {
     value: function(string) {
-      return string.replace(/(^\s+|\s+$)/g, '').
-                    replace(/(^")|("$)/g, '').
-                    replace(/[\n\r]/g, '').
-                    replace(/\"\"/, '"');
+      if (string.charAt(0) === '"') {
+        string = string.substring(1, string.length);
+      }
+      if (string.charAt(string.length - 1) === '"') {
+        string = string.substring(0, string.length - 1);
+      }
+      return string.replace(/(^\s+|\s+$)/g, "").replace(/\"\"/g, '"');
     },
     decode: function(string) {
       if (string === "") {
@@ -46,8 +49,8 @@
         }
       }).join(",") + "\n";
     },
-    split: function(text, delimiter) {
-      return text.split(delimiter).map(function(item) {
+    clean: function(array) {
+      return array.map(function(item) {
         return format.decode(item);
       });
     }
@@ -55,6 +58,64 @@
 
   // Get helper
   get = {
+    rows: function(text, delimiter) {
+      var EOL, EOF, rows, N, I, n, t, eol, token;
+      EOL = {}; // Sentinel value for end-of-line
+      EOF = {}; // Sentinel value for end-of-file
+      rows = []; // Output
+      N = text.length;
+      I = 0; // Current character index
+      n = 0; // Current line number
+
+      token = function() {
+        if (I >= N) return EOF;
+        if (eol) return eol = false, EOL;
+
+        var c, i, j, k;
+
+        j = I;
+        if (text.charCodeAt(j) === 34) {
+          i = j;
+          while (i++ < N) {
+            if (text.charCodeAt(i) === 34) {
+              if (text.charCodeAt(i + 1) !== 34) break;
+              i += 1;
+            }
+          }
+          I = i + 2;
+          c = text.charCodeAt(i + 1);
+          if (c === 13) {
+            eol = true;
+            if (text.charCodeAt(i + 2) === 10) i += 1;
+          } else if (c === 10) {
+            eol = true;
+          }
+          return text.substring(j + 1, i);
+        }
+
+        while (I < N) {
+          c = text.charCodeAt(I++);
+          k = 1;
+          if (c === 10) eol = true; // \n
+          else if (c === 13) { eol = true; if (text.charCodeAt(I) === 10) ++I, ++k; } // \r|\r\n
+          else if (c !== delimiter.charCodeAt(0)) continue;
+          return text.substring(j, I - k);
+        }
+
+        return text.substring(j);
+      };
+
+      while ((t = token()) !== EOF) {
+        var a = [];
+        while (t !== EOL && t !== EOF) {
+          a.push(t);
+          t = token();
+        }
+        if (a[0] !== "" && a.length !== 1) rows.push(a);
+      }
+
+      return rows;
+    },
     keys: function(object) {
       var results = [];
       for (var key in object) results.push(key);
@@ -75,13 +136,11 @@
     options = confirm.existance(options) ? options : {};
 
     this.options = {
-      line: confirm.existance(options.line) ? options.line : /[\r\n]/,
-      delimiter: confirm.existance(options.delimiter) ? options.delimiter : /,/,
+      delimiter: confirm.existance(options.delimiter) ? options.delimiter : ",",
       header: confirm.existance(options.header) ? options.header : false,
       replace: confirm.existance(options.replace) ? options.replace : false,
       stream: confirm.existance(options.stream) ? options.stream : undefined,
-      done: confirm.existance(options.done) ? options.done : undefined,
-      detailed: confirm.existance(options.detailed) ? options.detailed : false
+      done: confirm.existance(options.done) ? options.done : undefined
     };
 
     return this;
@@ -109,7 +168,7 @@
   };
 
   CSV.prototype.encode = function(array) {
-    var stream, complete, header, supplied, detailed, response, data, getValues;
+    var stream, complete, header, supplied, detailed, response, data;
     stream = this.options.stream;
     complete = this.options.done;
     header = this.options.header;
@@ -133,83 +192,52 @@
       } else {
         response.data += values;
       }
-      if (complete) {
-        complete(response);
-      }
     }
-    return detailed ? response : response.data;
+    if (complete) complete(response);
+    return response;
   };
 
   CSV.prototype.parse = function(text) {
-    var delimiter, stream, complete, header, replace, detailed, data, rows, response;
+    var stream, complete, header, replace, rows, response;
     // Aliases
-    delimiter = this.options.delimiter;
     stream = this.options.stream;
     complete = this.options.done;
     header = this.options.header;
     replace = this.options.replace;
-    detailed = this.options.detailed;
 
-    // Empty data array
-    data = [];
-    rows = format.split(text, this.options.line).filter(function(item) { return item.length > 0; });
-
+    rows = get.rows(text, this.options.delimiter);
     if (header) {
-      // Create a closure
-      (function() {
-        var supplied, fields;
-        // Has the header been supplied?
-        supplied = header instanceof Array;
-        // Set the fields
-        fields = supplied ? header : format.split(rows[0], delimiter);
-        // Set the data rows
-        rows = supplied && !replace ? rows : rows.slice(1);
-        // Go through each row
-        for (var _i = 0, _len = rows.length; _i < _len; _i += 1) {
-          var row, object;
-          // Set the row we're working on
-          row = format.split(rows[_i], delimiter);
-          // Empty object
-          object = {};
-          // Loop through the row's values, and apply those to the object
-          for (var _n = 0, _len2 = row.length; _n < _len2; _n += 1) {
-            object[fields[_n]] = row[_n];
-          }
-          if (stream) {
-            stream(object);
-          } else {
-            data.push(object);
-          }
+      var supplied, data, fields;
+      supplied = header instanceof Array;
+      data = supplied && !replace ? rows : rows.slice(1);
+      fields = supplied ? header : format.clean(rows[0]);
+      response = data.map(function(record) {
+        // Clean the record
+        record = format.clean(record);
+        // Empty object
+        var object = {};
+        // Loop through the row's values, and apply those to the object
+        for (var _n = 0, _len2 = record.length; _n < _len2; _n += 1) {
+          object[fields[_n]] = record[_n];
         }
-        // Return a JSON object containing the fields array and the data array
-        response = { fields: fields, data: data };
-      })();
-    // If there isn't a header
+        if (stream) {
+          stream(object);
+        } else {
+          return object;
+        }
+      });
     } else {
-      // Create a closure
-      (function() {
-        // Go through each row
-        for (var _i = 0, _len = rows.length; _i < _len; _i += 1) {
-          var row, object;
-          // Set the row we're working on
-          row = format.split(rows[_i], delimiter);
-          // Empty array
-          object = [];
-          // Loop through the row's values, and apply those to the object
-          for (var _n = 0, _len2 = row.length; _n < _len2; _n += 1) {
-            object.push(row[_n]);
-          }
-          if (stream) {
-            stream(object);
-          } else {
-            data.push(object);
-          }
+      response = rows.map(function(record) {
+        // Clean the record
+        record = format.clean(record);
+        // Return the cleaned record
+        if (stream) {
+          stream(record);
+        } else {
+          return record;
         }
-        // Return a JSON object containing the data array
-        response = { data: data };
-      })();
+      });
     }
-    response = detailed ? response : response.data;
     if (complete) complete(reponse);
     return response;
   };

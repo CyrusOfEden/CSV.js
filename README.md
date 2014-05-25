@@ -1,7 +1,7 @@
 CSV.js
 ======
 
-Simple CSV parsing/encoding in JavaScript.
+Simple CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
 
 Compatible with browsers, AMD, and NodeJS.
 
@@ -24,7 +24,7 @@ Available options:
 {
   line: string               // The character(s) separating records. Defaults to '\r\n'.
   delimiter: string          // The character(s) separating values in a row. Defaults to ','.
-  header: boolean or array   // Whether or not the first row of the CSV contains the fields. Defaults to false.
+  header: boolean or array   // First row of CSV contains headers (true), or not (false). Supply your own header (array). Defaults to false.
   replace: boolean           // Replace the first row of data with the supplied header (true), or not (false). Defaults to false.
   stream: function           // A function to call after every row is parsed. Defaults to undefined.
   done: function             // A function to call after all rows are parsed. Defaults to undefined.
