@@ -27,7 +27,6 @@ Available options:
   replace: boolean           // Replace the first row of data with the supplied header (true), or not (false). Defaults to false.
   stream: function           // A function to call after every row is parsed. Defaults to undefined.
   done: function             // A function to call after all rows are parsed. Defaults to undefined.
-  detailed: boolean          // Return an object with details (true) or an array of the data (false). Defaults to false.
 }
 ```
 
