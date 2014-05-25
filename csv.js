@@ -5,7 +5,7 @@
 
   // Confirm helper
   confirm = {
-    existance: function(possible) {
+    existence: function(possible) {
       return !!(possible && possible !== null);
     },
     number: function(possible) {
@@ -133,14 +133,14 @@
   };
 
   CSV = function(options) {
-    options = confirm.existance(options) ? options : {};
+    options = confirm.existence(options) ? options : {};
 
     this.options = {
-      delimiter: confirm.existance(options.delimiter) ? options.delimiter : ",",
-      header: confirm.existance(options.header) ? options.header : false,
-      replace: confirm.existance(options.replace) ? options.replace : false,
-      stream: confirm.existance(options.stream) ? options.stream : undefined,
-      done: confirm.existance(options.done) ? options.done : undefined
+      delimiter: confirm.existence(options.delimiter) ? options.delimiter : ",",
+      header: confirm.existence(options.header) ? options.header : false,
+      replace: confirm.existence(options.replace) ? options.replace : false,
+      stream: confirm.existence(options.stream) ? options.stream : undefined,
+      done: confirm.existence(options.done) ? options.done : undefined
     };
 
     return this;
