@@ -79,8 +79,8 @@ The response would be:
 
 ```javascript
 [
-  {Year: 1850, Age: 20, Marital Status: 0, Sex: 1, People: 1017281},
-  {Year: 1850, Age: 20, Marital Status: 0, Sex: 2, People: 1003841},
+  {year: 1850, age: 20, marital status: 0, sex: 1, people: 1017281},
+  {year: 1850, age: 20, marital status: 0, sex: 2, people: 1003841},
   ...
 ]
 ```
