@@ -1,7 +1,7 @@
 CSV.js
 ======
 
-Simple CSV parsing/encoding in JavaScript. Fully compliant with [RFC 4180](http://tools.ietf.org/html/rfc4180).
+Simple CSV parsing/encoding in JavaScript.
 
 Compatible with browsers, AMD, and NodeJS.
 
