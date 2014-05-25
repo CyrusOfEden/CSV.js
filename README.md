@@ -12,10 +12,10 @@ Instantiate CSV by calling `new CSV()`. You can supply options with the format `
 Available options:
 ```javascript
 {
-  delimiter: string // the character(s) seperating values in a row. Defaults to ','
+  delimiter: string // the character(s) separating values in a row. Defaults to ','
   header: boolean   // whether or not the first row of the CSV contains the fields. Defaults to false.
   stream: function  // A function to call after every row is parsed
-  done: function    // A funciton to call after all rows are parsed
+  done: function    // A function to call after all rows are parsed
 }
 ```
 
