@@ -22,7 +22,6 @@ Create a CSV instance by running `var csv = new CSV();`. You can supply options 
 Available options:
 ```javascript
 {
-  line: string               // The character(s) separating records. Defaults to '\r\n'.
   delimiter: string          // The character(s) separating values in a row. Defaults to ','.
   header: boolean or array   // First row of CSV contains headers (true), or not (false). Supply your own header (array). Defaults to false.
   replace: boolean           // Replace the first row of data with the supplied header (true), or not (false). Defaults to false.
