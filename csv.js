@@ -1,6 +1,6 @@
 (function() {
 
-  var CSV, confirm, number;
+  var CSV, confirm, format, get;
 
   confirm = {
     existance: function(possible) {
@@ -27,9 +27,9 @@
     encode: function(array) {
       return array.map(function(element) {
         if (confirm.number(element)) {
-          return '"' + element + '"';
-        } else {
           return element;
+        } else {
+          return '"' + element + '"';
         }
       }).join(",") + "\n";
     },
@@ -37,6 +37,23 @@
       return text.split(delimiter).map(function(item) {
         return format.decode(item);
       });
+    }
+  };
+
+  get = {
+    keys: function(object) {
+      var results = [];
+      for (var key in object) results.push(key);
+      return results;
+    },
+    values: function(object) {
+      var results = [];
+      if (object instanceof Array) {
+        results.concat(object);
+      } else {
+        for (var key in object) results.push(object[key]);
+      }
+      return results;
     }
   };
 
@@ -75,34 +92,25 @@
   };
 
   CSV.prototype.encode = function(array) {
-    var stream, complete, detailed, response, data, getValues;
+    var stream, complete, header, supplied, detailed, response, data, getValues;
     stream = this.options.stream;
     complete = this.options.done;
+    header = this.options.header;
+    supplied = header instanceof Array ? header : false;
     detailed = this.options.detailed;
+    data = array;
     response = {};
 
     if (this.options.header) {
-      response.data = format.encode((function() {
-        results = [];
-        for (var key in array[0]) results.push(key);
-        return results;
-      })());
-      data = array.slice(1);
+      response.data = supplied ? header : format.encode(get.keys(data[0]));
     } else {
       response.data = "";
-      data = array;
     }
-
-    getValues = function(object) {
-      results = [];
-      for (var key in object) results.push(object[key]);
-      return results;
-    };
 
     for (var _i = 0, _len = data.length; _i < _len; _i += 1) {
       var object, values;
       object = data[_i];
-      values = format.encode(getValues(object));
+      values = format.encode(get.values(object));
       if (stream) {
         stream(values);
       } else {
@@ -111,8 +119,8 @@
       if (complete) {
         complete(response);
       }
-      return detailed ? response : response.data;
     }
+    return detailed ? response : response.data;
   };
 
   CSV.prototype.parse = function(text) {
