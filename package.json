@@ -1,0 +1,27 @@
+{
+  "name": "comma-separated-values",
+  "version": "1.0.0",
+  "description": "Simple CSV parsing and encoding. Full RFC 4180 compliance.",
+  "main": "csv.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/knrz/CSV.js"
+  },
+  "keywords": [
+    "csv",
+    "csv parse",
+    "csv encode",
+    "csv rfc",
+    "tsv",
+    "tsv parse",
+    "tsv encode",
+    "tsv rfc"
+  ],
+  "author": "= <hi@knrz.co> (http://knrz.co/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/knrz/CSV.js/issues"
+  },
+  "homepage": "https://github.com/knrz/CSV.js"
+}

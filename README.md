@@ -6,6 +6,14 @@ Simple CSV parsing/encoding in JavaScript. Fully compliant with [RFC 4180](http:
 Compatible with browsers, AMD, and NodeJS.
 
 
+Installation
+------------
+
+Download `csv.min.js` and reference to it using your preferred method.
+
+If you use **Bower**, or **npm**, install the `comma-separated-values` package.
+
+
 Instantiation
 -------------
 
