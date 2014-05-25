@@ -21,7 +21,7 @@
     value: function(string) {
       return string.replace(/(^\s+|\s+$)/g, '').
                     replace(/(^")|("$)/g, '').
-                    replace(/[\n|\r]/g, '').
+                    replace(/[\n\r]/g, '').
                     replace(/\"\"/, '"');
     },
     decode: function(string) {
@@ -75,7 +75,7 @@
     options = confirm.existance(options) ? options : {};
 
     this.options = {
-      line: confirm.existance(options.line) ? options.line : /[\r|\n]/,
+      line: confirm.existance(options.line) ? options.line : /[\r\n]/,
       delimiter: confirm.existance(options.delimiter) ? options.delimiter : /,/,
       header: confirm.existance(options.header) ? options.header : false,
       replace: confirm.existance(options.replace) ? options.replace : false,
