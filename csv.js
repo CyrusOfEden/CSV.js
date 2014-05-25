@@ -3,6 +3,7 @@
 
   var CSV, confirm, format, get;
 
+  // Confirm helper
   confirm = {
     existance: function(possible) {
       return !!(possible && possible !== null);
@@ -15,7 +16,13 @@
     }
   };
 
+  // Format helper
   format = {
+    value: function(string) {
+      return string.replace(/(^\s+|\s+$)/g, '').
+                    replace(/|(^")|("$)|[\n|\r]/g, '').
+                    replace(/\"\"/, '"');
+    },
     decode: function(string) {
       if (string === "") {
         return string;
@@ -26,7 +33,7 @@
       } else if (string.toLowerCase() === "false") {
         return false;
       } else {
-        return string.replace(/\"/gi, '').trim();
+        return format.value(string);
       }
     },
     encode: function(array) {
@@ -45,6 +52,7 @@
     }
   };
 
+  // Get helper
   get = {
     keys: function(object) {
       var results = [];
@@ -65,13 +73,15 @@
   CSV = function(options) {
     options = confirm.existance(options) ? options : {};
 
-    this.options = {};
-    this.options.line = confirm.existance(options.line) ? options.line : /(\n|\r)/;
-    this.options.delimiter = confirm.existance(options.delimiter) ? options.delimiter : ',';
-    this.options.header = confirm.existance(options.header) ? options.header : false;
-    this.options.stream = confirm.existance(options.stream) ? options.stream : undefined;
-    this.options.done = confirm.existance(options.done) ? options.done : undefined;
-    this.options.detailed = confirm.existance(options.detailed) ? options.detailed : false;
+    this.options = {
+      line: confirm.existance(options.line) ? options.line : /[\r|\n]/,
+      delimiter: confirm.existance(options.delimiter) ? options.delimiter : /,/,
+      header: confirm.existance(options.header) ? options.header : false,
+      replace: confirm.existance(options.replace) ? options.replace : false,
+      stream: confirm.existance(options.stream) ? options.stream : undefined,
+      done: confirm.existance(options.done) ? options.done : undefined,
+      detailed: confirm.existance(options.detailed) ? options.detailed : false
+    };
 
     return this;
   };
@@ -130,19 +140,18 @@
   };
 
   CSV.prototype.parse = function(text) {
-    var delimiter, stream, complete, header, detailed, data, rows, response;
+    var delimiter, stream, complete, header, replace, detailed, data, rows, response;
     // Aliases
     delimiter = this.options.delimiter;
     stream = this.options.stream;
     complete = this.options.done;
     header = this.options.header;
+    replace = this.options.replace;
     detailed = this.options.detailed;
 
     // Empty data array
     data = [];
-    rows = text.split(this.options.line).filter(function(item) {
-      return item.length > 1 && item[0] !== "";
-    });
+    rows = format.split(text, this.options.line).filter(function(item) { return item.length > 0; });
 
     if (header) {
       // Create a closure
@@ -153,7 +162,7 @@
         // Set the fields
         fields = supplied ? header : format.split(rows[0], delimiter);
         // Set the data rows
-        rows = supplied ? rows : rows.slice(1);
+        rows = supplied && !replace ? rows : rows.slice(1);
         // Go through each row
         for (var _i = 0, _len = rows.length; _i < _len; _i += 1) {
           var row, object;
@@ -204,6 +213,7 @@
     return response;
   };
 
+  // Define this module
   if (typeof define === "function" && define.amd) {
     define(CSV);
   } else if (typeof module === "object" && module.exports) {

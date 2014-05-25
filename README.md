@@ -1,21 +1,22 @@
 CSV.js
 ======
 
-Simple CSV parsing/encoding in JavaScript.
+Simple CSV parsing/encoding in JavaScript. Fully compliant with [RFC 4180](http://tools.ietf.org/html/rfc4180).
 
-Compatible with plain ol' browsers, NodeJS, and AMD.
+Compatible with browsers, AMD, and NodeJS.
 
 
 Instantiation
 -------------
 
-Instantiate CSV by calling `new CSV()`. You can supply options with the format `new CSV({ option: value })`.
+Create a CSV instance by running `var csv = new CSV();`. You can supply options with the format `var csv = new CSV({ option: value });`.
 
 Available options:
 ```javascript
 {
-  delimiter: string          // the character(s) separating values in a row. Defaults to ','.
-  header: boolean or array   // whether or not the first row of the CSV contains the fields. Defaults to false.
+  delimiter: string          // The character(s) separating values in a row. Defaults to ','.
+  header: boolean or array   // Whether or not the first row of the CSV contains the fields. Defaults to false.
+  replace: boolean           // Replace the first row of data with the supplied header (true), or not (false). Defaults to false.
   stream: function           // A function to call after every row is parsed. Defaults to undefined.
   done: function             // A function to call after all rows are parsed. Defaults to undefined.
   detailed: boolean          // Return an object with details (true) or an array of the data (false). Defaults to false.
@@ -28,42 +29,42 @@ You can update an option's value any time after instantiation with `csv.set(opti
 Parsing
 -------
 
-If the CSV contains headers, `.parse()` parse will return objects with properly-set properties.
+If the CSV contains headers, `csv.parse()` parse will return objects with properly-set properties.
 
 With the following example:
 
 ```javascript
 var csv = new CSV({ header: true });
 csv.parse('\
-  "Year","Age","Marital Status","Sex","People"\n\
-  1850,20,0,1,1017281\n\
-  1850,20,0,2,1003841\n\
-  1850,25,0,1,862547\n\
-  1850,25,0,2,799482\n\
-  1850,30,0,1,730638\n\
-  1850,30,0,2,639636\n\
-  1850,35,0,1,588487\n\
-  1850,35,0,2,505012\n\
-  1850,40,0,1,475911\n\
-  1850,40,0,2,428185\
+  "year","age","status","sex","people"\r\n\
+  1850,20,0,1,1017281\r\n\
+  1850,20,0,2,1003841\r\n\
+  1850,25,0,1,862547\r\n\
+  1850,25,0,2,799482\r\n\
+  1850,30,0,1,730638\r\n\
+  1850,30,0,2,639636\r\n\
+  1850,35,0,1,588487\r\n\
+  1850,35,0,2,505012\r\n\
+  1850,40,0,1,475911\r\n\
+  1850,40,0,2,428185\r\n\
 ');
 ```
 
 Optionally, supplying your own header field:
 
 ```javascript
-var csv = new CSV({ header: ["Year", "Age", "Marital Status", "Sex", "People"] });
+var csv = new CSV({ header: ["year","age","status","sex","people"] });
 csv.parse('\
-  1850,20,0,1,1017281\n\
-  1850,20,0,2,1003841\n\
-  1850,25,0,1,862547\n\
-  1850,25,0,2,799482\n\
-  1850,30,0,1,730638\n\
-  1850,30,0,2,639636\n\
-  1850,35,0,1,588487\n\
-  1850,35,0,2,505012\n\
-  1850,40,0,1,475911\n\
-  1850,40,0,2,428185\
+  1850,20,0,1,1017281\r\n\
+  1850,20,0,2,1003841\r\n\
+  1850,25,0,1,862547\r\n\
+  1850,25,0,2,799482\r\n\
+  1850,30,0,1,730638\r\n\
+  1850,30,0,2,639636\r\n\
+  1850,35,0,1,588487\r\n\
+  1850,35,0,2,505012\r\n\
+  1850,40,0,1,475911\r\n\
+  1850,40,0,2,428185\r\n\
 ');
 ```
 
@@ -87,7 +88,7 @@ Pass an **array of objects** to `csv.encode()` to get CSV, sans headers.
 Run `csv.set("header", true)` to add headers.
 
 Pass an **array of arrays** to `csv.encode()` to get CSV, sans headers.
-Run `csv.set("header", headerValues)`, where `headerValues` is an array to add your own header.
+Run `csv.set("header", headerValues)`, where `headerValues` is an array with your own header values.
 
 
 Events
