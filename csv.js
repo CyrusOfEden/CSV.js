@@ -21,6 +21,10 @@
         return string;
       } else if (confirm.number(string)) {
         return Number(string);
+      } else if (string.toLowerCase() === "true") {
+        return true;
+      } else if (string.toLowerCase() === "false") {
+        return false;
       } else {
         return string.replace(/\"/gi, '').trim();
       }
@@ -62,7 +66,8 @@
     options = confirm.existance(options) ? options : {};
 
     this.options = {};
-    this.options.delimiter = confirm.existance(options.delimiter) ? options.delimiter : ",";
+    this.options.line = confirm.existance(options.line) ? options.line : /(\n|\r)/;
+    this.options.delimiter = confirm.existance(options.delimiter) ? options.delimiter : COMMA;
     this.options.header = confirm.existance(options.header) ? options.header : false;
     this.options.stream = confirm.existance(options.stream) ? options.stream : undefined;
     this.options.done = confirm.existance(options.done) ? options.done : undefined;
@@ -135,7 +140,7 @@
 
     // Empty data array
     data = [];
-    rows = text.split('\n').filter(function(item) {
+    rows = text.split(this.options.line).filter(function(item) {
       return item.length > 1 && item[0] !== "";
     });
 
