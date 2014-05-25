@@ -4,8 +4,8 @@ CSV.js
 Basic CSV parsing/encoding in JavaScript.
 
 
-Instatiation
-------------
+Instantiation
+-------------
 
 Instantiate CSV by calling `new CSV()`. You can supply options with the format `new CSV({ option: value })`.
 
