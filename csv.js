@@ -1,4 +1,5 @@
 (function() {
+  'use strict';
 
   var CSV, confirm, format, get;
 
@@ -203,7 +204,7 @@
   } else if (typeof module === "object" && module.exports) {
     module.exports = CSV;
   } else {
-    this.CSV = CSV;
+    window.CSV = CSV;
   }
 
 })();

@@ -1,7 +1,9 @@
 CSV.js
 ======
 
-Basic CSV parsing/encoding in JavaScript.
+Simple CSV parsing/encoding in JavaScript.
+
+Compatible with plain ol' browsers, NodeJS, and AMD.
 
 
 Instantiation
