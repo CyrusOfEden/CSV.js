@@ -150,7 +150,7 @@
     stream = this.options.stream;
     complete = this.options.done;
     header = this.options.header;
-    rows = CSV.rows(text, this.options.delimiter);
+    rows = CSV.rows(text, this.options.delimiter, stream);
 
     if (header) {
       var supplied, data, fields;
