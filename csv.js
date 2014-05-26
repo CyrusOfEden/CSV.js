@@ -2,14 +2,15 @@
   'use strict';
 
   var CSV = function(options) {
-    options = !!(options && options !== null) ? options : {};
+    var exists = function(possibility) { return !!(possibility && possibility !== null); };
+
+    options = exists(options) ? options : {};
 
     this.options = {
-      delimiter: !!(options.delimiter && options.delimiter !== null) ? options.delimiter : ",",
-      header: !!(options.header && options.header !== null) ? options.header : false,
-      replace: !!(options.replace && options.replace !== null) ? options.replace : false,
-      stream: !!(options.stream && options.stream !== null) ? options.stream : undefined,
-      done: !!(options.done && options.done !== null) ? options.done : undefined
+      delimiter: exists(options.delimiter) ? options.delimiter : ",",
+      header: exists(options.header) ? options.header : false,
+      stream: exists(options.stream) ? options.stream : undefined,
+      done: exists(options.done) ? options.done : undefined
     };
 
     return this;
@@ -20,8 +21,8 @@
     cast: function(string) {
       var match = string.toLowerCase();
       if (match === "") {
-        return string;
-      } else if (!isNaN(Number(string))) {
+        return undefined;
+      }  else if(!isNaN(Number(string))) {
         return Number(string);
       } else if (match === "true" || match === "t" || match === "yes" || match === "y") {
         return true;
@@ -42,13 +43,46 @@
     }
   };
 
-  CSV.rows = function(text, delimiter, stream) {
-    stream = !!(stream && stream.constructor && stream.call && stream.apply) ? stream : false;
+  CSV.prototype.set = function(option, value) { this.options[option] = value; return value; };
 
-    var EOL, EOF, rows, N, I, n, t, eol, token;
+  CSV.prototype.encode = function(data) {
+    var response, kind, fields, header, stream, complete;
+    response = [];
+    kind = data[0] instanceof Array ? "array" : "object";
+    header = this.options.header;
+    stream = this.options.stream || [].push;
+    complete = this.options.done;
+
+    if (kind === "object") {
+      fields = Object.keys(data[0]);
+      stream.call(response, CSV.format.encode(fields));
+      data.forEach(function(record) {
+        record = fields.map(function(key) { return record[key]; });
+        stream.call(response, CSV.format.encode(record));
+      });
+    } else {
+      if (header && header instanceof Array) stream.call(response, CSV.format.encode(header));
+      data.forEach(function(record) { stream.call(response, CSV.format.encode(record)); });
+    }
+
+    // Return as appropriate
+    return complete ? complete(response) : response.join("");
+  };
+
+  CSV.prototype.parse = function(text) {
+    var response, delimiter, stream, complete, header, fields;
+    // Response
+    response = [];
+    // Aliases
+    delimiter = this.options.delimiter;
+    stream = this.options.stream || [].push;
+    complete = this.options.done;
+    header = this.options.header;
+    fields = header instanceof Array ? header : false;
+
+    var EOL, EOF, N, I, n, t, eol, token;
     EOL = {}; // Sentinel value for end-of-line
     EOF = {}; // Sentinel value for end-of-file
-    rows = []; // Output
     N = text.length;
     I = 0; // Current character index
     n = 0; // Current line number
@@ -92,85 +126,31 @@
       return text.substring(j);
     };
 
-    var a;
+    var a, object;
 
-    if (stream) {
-      while ((t = token()) !== EOF) {
-        a = [];
-        while (t !== EOL && t !== EOF) {
-          a.push(t);
-          t = token();
+    // While loop
+    while ((t = token()) !== EOF) {
+      a = [];
+      while (t !== EOL && t !== EOF) {
+        a.push(t);
+        t = token();
+      }
+      // If valid array
+      if (a[0] !== "" && a.length !== 1) {
+        if (fields && fields.length) {
+          // If fields has already been set
+          object = {}, a = a.map(CSV.format.cast);
+          for (var _i = 0, _len = fields.length; _i < _len; ++_i) object[fields[_i]] = a[_i];
+          stream.call(response, object);
+          // Otherwise
+        } else if (header) {
+          fields = (header instanceof Array ? header : a).map(CSV.format.cast);
+        } else {
+          stream.call(response, a.map(CSV.format.cast));
         }
-        if (a[0] !== "" && a.length !== 1) stream(a.map(CSV.format.cast));
-      }
-    } else {
-      while ((t = token()) !== EOF) {
-        a = [];
-        while (t !== EOL && t !== EOF) {
-          a.push(t);
-          t = token();
-        }
-        if (a[0] !== "" && a.length !== 1) rows.push(a.map(CSV.format.cast));
-      }
-    }
+      } // If valid array
+    } // While loop
 
-    return rows;
-  };
-
-  CSV.prototype.set = function(option, value) { this.options[option] = value; return value; };
-  CSV.prototype.stream = function(method) { this.options.stream = method; return method; };
-  CSV.prototype.done = function(method) { this.options.done = method; return method; };
-
-  CSV.prototype.encode = function(data) {
-    var stream, complete, header, supplied, detailed, response;
-    stream = this.options.stream;
-    complete = this.options.done;
-    header = this.options.header;
-    supplied = header instanceof Array ? header : false;
-    detailed = this.options.detailed;
-    response = header ? (supplied ? header : CSV.format.encode(Object.keys(data[0]))) : "";
-
-    data.forEach(function(object) {
-      var values = CSV.format.encode(
-        object instanceof Array ? object : Object.keys(object).map(function(key) { return object[key]; })
-      );
-      if (stream) {
-        stream(values);
-      } else {
-        response += values;
-      }
-    });
-    // Return as appropriate
-    return complete ? complete(response) : response;
-  };
-
-  CSV.prototype.parse = function(text) {
-    var stream, complete, header, rows, response;
-    // Aliases
-    stream = this.options.stream;
-    complete = this.options.done;
-    header = this.options.header;
-    rows = CSV.rows(text, this.options.delimiter, stream);
-
-    if (header) {
-      var supplied, data, fields;
-      supplied = header instanceof Array;
-      data = supplied && !this.options.replace ? rows : rows.slice(1);
-      fields = supplied ? header : rows[0];
-      response = data.map(function(record) {
-        // Empty object
-        var object = {};
-        // Loop through the row's values, and apply those to the object
-        record.forEach(function(value, index) { object[fields[index]] = value; });
-        // Return as appropriate
-        return stream ? stream(object) : object;
-      });
-    } else {
-      response = rows.map(function(record) {
-        // Return as appropriate
-        return stream ? stream(record) : record;
-      });
-    }
     // Return as appropriate
     return complete ? complete(response) : response;
   };
