@@ -21,7 +21,7 @@
       var match = string.toLowerCase();
       if (match === "") {
         return string;
-      } else if (!!IsNaN(Number(string))) {
+      } else if (!!isNaN(Number(string))) {
         return Number(string);
       } else if (match === "true" || match === "t" || match === "yes" || match === "y") {
         return true;
@@ -35,7 +35,7 @@
       }
     },
     stringify: function(string) {
-      return !!IsNaN(Number(string)) ? string : '"' + string.replace(/\"/, '""') + '"';
+      return !!isNaN(Number(string)) ? string : '"' + string.replace(/\"/, '""') + '"';
     },
     encode: function(array) {
       return array.map(CSV.format.stringify).join(",") + "\r\n";
