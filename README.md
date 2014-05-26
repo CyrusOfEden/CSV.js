@@ -118,7 +118,7 @@ var csv = new CSV({ header: ["year", "age", "status", "sex", "population"] });
 csv.encode([[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]]);
 /*
 Returns:
-  "year","age","status","sex","population"
+  "year","age","status","sex","population"\r\n\
   1850,20,0,1,1017281\r\n\
   1850,20,0,2,1003841\r\n\
 */
@@ -135,7 +135,7 @@ csv.encode([
 ]);
 /*
 Returns:
-  "year","age","status","sex","population"
+  "year","age","status","sex","population"\r\n\
   1850,20,0,1,1017281\r\n\
   1850,20,0,2,1003841\r\n\
 */
