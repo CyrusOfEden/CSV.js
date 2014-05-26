@@ -72,6 +72,7 @@ Returns:
     ...
   ]
 */
+```
 
 
 You may also supply your own header values, if the text does not contain them, by setting `header` to an `array` of field values.
@@ -91,6 +92,7 @@ Returns:
     ...
   ]
 */
+```
 
 
 Encoding
