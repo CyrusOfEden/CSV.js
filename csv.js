@@ -18,14 +18,15 @@
 
   CSV.format = {
     cast: function(string) {
-      string = string.toLowerCase().trim();
+      string = string.trim();
+      var match = string.toLowerCase();
       if (string === "") {
         return undefined;
       }  else if(!isNaN(Number(string))) {
         return Number(string);
-      } else if (string === "true" || string === "t" || string === "yes" || string === "y") {
+      } else if (match === "true" || match === "t" || match === "yes" || match === "y") {
         return true;
-      } else if (string === "false" || string === "f" || string === "no" || string === "n") {
+      } else if (match === "false" || match === "f" || match === "no" || match === "n") {
         return false;
       }
     },
@@ -87,18 +88,29 @@
       flag = { escaped: false, quote: false, cell: true };
     };
 
-    send = function() {
-      if (fields && fields.length) {
-        var object = {};
-        for (var _n = 0, _lenf = fields.length; _n < _lenf; ++_n) object[fields[_n]] = current.row[_n];
+    if (fields.length) {
+      var object;
+      send = function() {
+        object = {};
+        fields.forEach(function(field, _n) { object[field] = current.row[_n]; });
         stream.call(response, object);
-      } else if (header) {
-        fields = header instanceof Array ? header : current.row;
-      } else {
+      };
+    } else if (header) {
+      var object;
+      send = function() {
+        if (fields) {
+          object = {};
+          fields.forEach(function(field, _n) { object[field] = current.row[_n]; });
+          stream.call(response, object);
+        } else {
+          fields = current.row;
+        }
+      };
+    } else {
+      send = function() {
         stream.call(response, current.row);
       }
-      current.row = [];
-    };
+    }
 
     for (var start = 0, _i = 0, _lent = text.length, _delim = this.options.delimiter.charCodeAt(0), sign; _i <= _lent; ++_i) {
       sign = text.charCodeAt(_i);
@@ -109,11 +121,9 @@
           continue;
         }
       }
-      if (flag.escaped) {
-        if (sign === 34) {
-          flag.quote = !flag.quote;
-          continue;
-        }
+      if (flag.escaped && sign === 34) {
+        flag.quote = !flag.quote;
+        continue;
       }
       if ((flag.escaped && flag.quote) || !flag.escaped) {
         if (sign === _delim) {
