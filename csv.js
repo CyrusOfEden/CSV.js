@@ -18,14 +18,14 @@
 
   CSV.format = {
     cast: function(string) {
-      var match = string.toLowerCase();
-      if (match === "") {
+      string = string.toLowerCase().trim();
+      if (string === "") {
         return undefined;
       }  else if(!isNaN(Number(string))) {
         return Number(string);
-      } else if (match === "true" || match === "t" || match === "yes" || match === "y") {
+      } else if (string === "true" || string === "t" || string === "yes" || string === "y") {
         return true;
-      } else if (match === "false" || match === "f" || match === "no" || match === "n") {
+      } else if (string === "false" || string === "f" || string === "no" || string === "n") {
         return false;
       }
     },
@@ -82,21 +82,20 @@
     save = function(cell) {
       if (flag.escaped) cell = cell.slice(1, -1).replace(/""/g, '"');
 
-      current.row.push(cell.trim());
+      current.row.push(CSV.format.cast(cell));
       current.cell = "";
       flag = { escaped: false, quote: false, cell: true };
     };
 
     send = function() {
-      var data = current.row.map(CSV.format.cast);
       if (fields && fields.length) {
         var object = {};
-        for (var _n = 0, _lenf = fields.length; _n < _lenf; ++_n) object[fields[_n]] = data[_n];
+        for (var _n = 0, _lenf = fields.length; _n < _lenf; ++_n) object[fields[_n]] = current.row[_n];
         stream.call(response, object);
       } else if (header) {
         fields = header instanceof Array ? header : data;
       } else {
-        stream.call(response, data);
+        stream.call(response, current.row);
       }
       current.row = [];
     };
