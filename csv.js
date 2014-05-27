@@ -93,7 +93,7 @@
         for (var _n = 0, _lenf = fields.length; _n < _lenf; ++_n) object[fields[_n]] = current.row[_n];
         stream.call(response, object);
       } else if (header) {
-        fields = header instanceof Array ? header : data;
+        fields = header instanceof Array ? header : current.row;
       } else {
         stream.call(response, current.row);
       }

@@ -1,6 +1,6 @@
 {
   "name": "comma-separated-values",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Simple CSV parsing and encoding. Full RFC 4180 compliance.",
   "main": "csv.js",
   "scripts": {},
