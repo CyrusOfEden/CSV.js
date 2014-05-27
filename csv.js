@@ -80,6 +80,9 @@
     header = this.options.header;
     fields = header instanceof Array ? header : false;
 
+    /*
+     * BEGIN CSV PARSING CODE BORROWED FROM D3.JS
+     */
     var EOL, EOF, N, I, n, t, eol, token;
     EOL = {}; // Sentinel value for end-of-line
     EOF = {}; // Sentinel value for end-of-file
@@ -135,6 +138,9 @@
         a.push(t);
         t = token();
       }
+    /*
+     * END CSV PARSING CODE BORROWED FROM D3.JS
+     */
       // If valid array
       if (a[0] !== "" && a.length !== 1) {
         if (fields && fields.length) {
