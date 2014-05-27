@@ -2,7 +2,7 @@
   'use strict';
 
   var CSV = function(options) {
-    var exists = function(possibility) { return !!(possibility && possibility !== null); };
+    var exists = function(possible) { return !!(possible && possible !== null); };
 
     options = exists(options) ? options : {};
 
@@ -16,7 +16,6 @@
     return this;
   };
 
-  // Format helper
   CSV.format = {
     cast: function(string) {
       var match = string.toLowerCase();
@@ -28,11 +27,6 @@
         return true;
       } else if (match === "false" || match === "f" || match === "no" || match === "n") {
         return false;
-      } else {
-        string = string.trim();
-        if (string.charAt(0) === '"') string = string.substring(1, string.length);
-        if (string.charAt(string.length - 1) === '"') string = string.substring(0, string.length - 1);
-        return string.replace(/\"\"/g, '"');
       }
     },
     stringify: function(string) {
@@ -43,7 +37,10 @@
     }
   };
 
-  CSV.prototype.set = function(option, value) { this.options[option] = value; return value; };
+  CSV.prototype.set = function(option, value) {
+    this.options[option] = value;
+    return this.options;
+  };
 
   CSV.prototype.encode = function(data) {
     var response, kind, fields, header, stream, complete;
@@ -70,92 +67,66 @@
   };
 
   CSV.prototype.parse = function(text) {
-    var response, delimiter, stream, complete, header, fields;
+    var response, stream, complete, header, fields, current, flag, save, send;
     // Response
     response = [];
     // Aliases
-    delimiter = this.options.delimiter;
     stream = this.options.stream || [].push;
     complete = this.options.done;
     header = this.options.header;
-    fields = header instanceof Array ? header : false;
+    fields = header instanceof Array ? header : [];
 
-    /*
-     * BEGIN CSV PARSING CODE BORROWED FROM D3.JS
-     */
-    var EOL, EOF, N, I, n, t, eol, token;
-    EOL = {}; // Sentinel value for end-of-line
-    EOF = {}; // Sentinel value for end-of-file
-    N = text.length;
-    I = 0; // Current character index
-    n = 0; // Current line number
+    current = { row: [], cell: "" };
+    flag = { escaped: false, quote: false, cell: true };
 
-    token = function() {
-      if (I >= N) return EOF;
-      if (eol) {
-        eol = false;
-        return EOL;
-      }
+    save = function(cell) {
+      if (flag.escaped) cell = cell.slice(1, -1).replace(/""/g, '"');
 
-      var j = I;
-      if (text.charCodeAt(j) === 34) {
-        var i = j;
-        while (i++ < N) {
-          if (text.charCodeAt(i) === 34) {
-            if (text.charCodeAt(i + 1) !== 34) break;
-            i += 1;
-          }
-        }
-        I = i + 2;
-        c = text.charCodeAt(i + 1);
-        if (c === 13) {
-          eol = true;
-          if (text.charCodeAt(i + 2) === 10) i += 1;
-        } else if (c === 10) {
-          eol = true;
-        }
-        return text.substring(j + 1, i);
-      }
-
-      while (I < N) {
-        var c = text.charCodeAt(I++);
-        var k = 1;
-        if (c === 10) eol = true; // \n
-        else if (c === 13) { eol = true; if (text.charCodeAt(I) === 10) ++I, ++k; } // \r|\r\n
-        else if (c !== delimiter.charCodeAt(0)) continue;
-        return text.substring(j, I - k);
-      }
-
-      return text.substring(j);
+      current.row.push(cell.trim());
+      current.cell = "";
+      flag = { escaped: false, quote: false, cell: true };
     };
 
-    var a, object;
-
-    // While loop
-    while ((t = token()) !== EOF) {
-      a = [];
-      while (t !== EOL && t !== EOF) {
-        a.push(t);
-        t = token();
+    send = function() {
+      var data = current.row.map(CSV.format.cast);
+      if (fields && fields.length) {
+        var object = {};
+        for (var _n = 0, _lenf = fields.length; _n < _lenf; ++_n) object[fields[_n]] = data[_n];
+        stream.call(response, object);
+      } else if (header) {
+        fields = header instanceof Array ? header : data;
+      } else {
+        stream.call(response, data);
       }
-    /*
-     * END CSV PARSING CODE BORROWED FROM D3.JS
-     */
-      // If valid array
-      if (a[0] !== "" && a.length !== 1) {
-        if (fields && fields.length) {
-          // If fields has already been set
-          object = {}, a = a.map(CSV.format.cast);
-          for (var _i = 0, _len = fields.length; _i < _len; ++_i) object[fields[_i]] = a[_i];
-          stream.call(response, object);
-          // Otherwise
-        } else if (header) {
-          fields = (header instanceof Array ? header : a).map(CSV.format.cast);
-        } else {
-          stream.call(response, a.map(CSV.format.cast));
+      current.row = [];
+    };
+
+    for (var start = 0, _i = 0, _lent = text.length, _delim = this.options.delimiter.charCodeAt(0), sign; _i <= _lent; ++_i) {
+      sign = text.charCodeAt(_i);
+      if (flag.cell) {
+        flag.cell = false;
+        if (sign === 34) {
+          flag.escaped = true;
+          continue;
         }
-      } // If valid array
-    } // While loop
+      }
+      if (flag.escaped) {
+        if (sign === 34) {
+          flag.quote = !flag.quote;
+          continue;
+        }
+      }
+      if ((flag.escaped && flag.quote) || !flag.escaped) {
+        if (sign === _delim) {
+          save(current.cell + text.slice(start, _i));
+          start = _i + 1;
+        } else if (sign === 10 || _i === _lent) {
+          save((current.cell + text.slice(start, _i)).slice(0, -1));
+          start = _i + 1;
+          send();
+        }
+      }
+    }
 
     // Return as appropriate
     return complete ? complete(response) : response;
