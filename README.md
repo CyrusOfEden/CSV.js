@@ -1,7 +1,7 @@
 CSV.js
 ======
 
-Simple CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
+Simple, fast CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
 
 Compatible with browsers, AMD, and NodeJS.
 
@@ -17,16 +17,16 @@ If you use **Bower**, or **npm**, install the `comma-separated-values` package.
 Instantiation
 -------------
 
-Create a CSV instance by running `var csv = new CSV();`. You can supply options with the format `var csv = new CSV({ option: value });`.
+Create a CSV instance with `var csv = new CSV(data);`, where `data` is the plain-text CSV file you want to work with. You can supply options with the format `var csv = new CSV(data, { option: value });`.
 
 
 Options
 -------
 
-- **`delimiter`** Set to a 1-character-long `string` that seperates values from one another. Defaults to `','`.
-- **`header`** Set to `true` if the first row of the CSV contains header values, or supply your own (`array`). Defaults to `false`.
-- **`stream`** Set to a `function` that is run immediately after _a row_ is parsed. Receives the row's data as its only argument. Defaults to `undefined`.
-- **`done`** Set to a `function` that is run immediately after _all rows_ have been parsed. Receives the parsed CSV as its only argument. If `stream` has been set, receives `[]` as its argument. Defaults to `undefined`.
+- **`cast`**: `true` to automatically typecast numbers. Slight performance gain if set to `true`. Defaults to `false`.
+- **`delimiter`**: A 1-character-long `string` that seperates values from one another. Defaults to `','`.
+- **`header`**: `true` if the first row of the CSV contains header values, or supply your own (`array`). Defaults to `false`.
+- **`done`**: A `function` that is run immediately after _all rows_ have been parsed. Receives the parsed/encoded CSV as its only argument. Defaults to `undefined`.
 
 You can update an option's value any time after instantiation with `csv.set(option, value)`.
 
@@ -37,19 +37,19 @@ Parsing
 By default CSV.js will return an `array of arrays`.
 
 ```javascript
-var csv = new CSV();
-csv.parse('\
+var data = '\
 1850,20,0,1,1017281\r\n\
 1850,20,0,2,1003841\r\n\
 ...
-');
+';
+new CSV(data).parse();
 /*
 Returns:
-  [
-    [1850, 20, 0, 1, 1017281],
-    [1850, 20, 0, 2, 1003841]
-    ...
-  ];
+[
+  [1850, 20, 0, 1, 1017281],
+  [1850, 20, 0, 2, 1003841]
+  ...
+]
 */
 ```
 
@@ -57,20 +57,20 @@ Returns:
 If the CSV's first row is a header, set `header` to `true`, and CSV.js will return an `array of objects`.
 
 ```javascript
-var csv = new CSV({ header: true });
-csv.parse('\
+var data = '\
 year,age,status,sex,population\r\n\
 1850,20,0,1,1017281\r\n\
 1850,20,0,2,1003841\r\n\
 ...
-');
+';
+new CSV(data, { header: true }).parse();
 /*
 Returns:
-  [
-    { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 },
-    { year: 1850, age: 20, status: 0, sex: 2, population: 1003841 }
-    ...
-  ]
+[
+  { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 },
+  { year: 1850, age: 20, status: 0, sex: 2, population: 1003841 }
+  ...
+]
 */
 ```
 
@@ -78,19 +78,21 @@ Returns:
 You may also supply your own header values, if the text does not contain them, by setting `header` to an `array` of field values.
 
 ```javascript
-var csv = new CSV({ header: ['year', 'age', 'status', 'sex', 'population'] });
-csv.parse('\
+var data = '\
 1850,20,0,1,1017281\r\n\
 1850,20,0,2,1003841\r\n\
 ...
-');
+';
+new CSV(data, {
+  header: ['year', 'age', 'status', 'sex', 'population']
+}).parse();
 /*
 Returns:
-  [
-    { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 },
-    { year: 1850, age: 20, status: 0, sex: 2, population: 1003841 }
-    ...
-  ]
+[
+  { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 },
+  { year: 1850, age: 20, status: 0, sex: 2, population: 1003841 }
+  ...
+]
 */
 ```
 
@@ -98,15 +100,16 @@ Returns:
 Encoding
 --------
 
-By default, `csv.encode` accepts an `array of arrays` or an `array of objects`.
+CSV.js accepts an `array of arrays` or an `array of objects`.
 
 ```javascript
-var csv = new CSV();
-csv.encode([[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]]);
+var data = [[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]...];
+new CSV(data).encode();
 /*
 Returns:
-  1850,20,0,1,1017281\r\n\
-  1850,20,0,2,1003841\r\n\
+1850,20,0,1,1017281\r\n\
+1850,20,0,2,1003841\r\n\
+...
 */
 ```
 
@@ -114,13 +117,13 @@ Returns:
 To add headers to an `array of arrays`, set `header` to an `array` of header field values.
 
 ```javascript
-var csv = new CSV({ header: ["year", "age", "status", "sex", "population"] });
-csv.encode([[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]]);
+var data = [[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]];
+new CSV(data, { header: ["year", "age", "status", "sex", "population"] }).encode();
 /*
 Returns:
-  "year","age","status","sex","population"\r\n\
-  1850,20,0,1,1017281\r\n\
-  1850,20,0,2,1003841\r\n\
+"year","age","status","sex","population"\r\n\
+1850,20,0,1,1017281\r\n\
+1850,20,0,2,1003841\r\n\
 */
 ```
 
@@ -128,15 +131,67 @@ Returns:
 To add headers to an `array of objects`, just set `header` to `true`.
 
 ```javascript
-var csv = new CSV({ header: true });
-csv.encode([
+var data = [
   { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 },
   { year: 1850, age: 20, status: 0, sex: 2, population: 1003841 }
-]);
+];
+new CSV(data, { header: true }).encode();
 /*
 Returns:
-  "year","age","status","sex","population"\r\n\
-  1850,20,0,1,1017281\r\n\
-  1850,20,0,2,1003841\r\n\
+"year","age","status","sex","population"\r\n\
+1850,20,0,1,1017281\r\n\
+1850,20,0,2,1003841\r\n\
 */
 ```
+
+
+Streaming
+---------
+
+If the dataset that you've provided is to be parsed, calling `CSV.prototype.forEach` (or `CSV.prototype.each`) and supplying a function will call your function and supply it with the parsed record immediately after it's been parsed.
+
+```javascript
+var data = '\
+1850,20,0,1,1017281\r\n\
+1850,20,0,2,1003841\r\n\
+...
+';
+new CSV(data).forEach(function(array) {
+  /*
+   * do something with the incoming array
+   * array example:
+   *   [1850, 20, 0, 1, 1017281]
+   */
+});
+```
+
+Likewise, if you've requested an `array of objects`, you can still call `CSV.prototype.forEach`:
+
+```javascript
+var data = '\
+year,age,status,sex,population\r\n\
+1850,20,0,1,1017281\r\n\
+1850,20,0,2,1003841\r\n\
+...
+';
+new CSV(data, { header: true }).forEach(function(object) {
+  /*
+   * do something with the incoming object
+   * object example:
+   *   { year: 1850, age: 20, status: 0, sex: 1, population: 1017281 }
+   */
+});
+```
+
+
+If you're dataset is to be encoded, `CSV.prototype.forEach` will call your function and supply the CSV-encoded line immediately after the line has been encoded:
+
+```javascript
+var data = [[1850, 20, 0, 1, 1017281], [1850, 20, 0, 2, 1003841]];
+new CSV(data).forEach(function(line) {
+  /*
+   * do something with the incoming line
+   * line example:
+   *   "1850,20,0,1,1017281\r\n\""
+   */
+});
