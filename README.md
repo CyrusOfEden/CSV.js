@@ -23,7 +23,7 @@ Create a CSV instance with `var csv = new CSV(data);`, where `data` is the plain
 Options
 -------
 
-- **`cast`**: `true` to automatically typecast numbers. Slight performance gain if set to `true`. Defaults to `false`.
+- **`cast`**: `true` to automatically typecast numbers. Slight performance gain if set to `false`. Defaults to `false`.
 - **`delimiter`**: A 1-character-long `string` that seperates values from one another. Defaults to `','`.
 - **`header`**: `true` if the first row of the CSV contains header values, or supply your own (`array`). Defaults to `false`.
 - **`done`**: A `function` that is run immediately after _all rows_ have been parsed. Receives the parsed/encoded CSV as its only argument. Defaults to `undefined`.
