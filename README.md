@@ -201,5 +201,4 @@ new CSV(data).forEach(function(line) {
 Special Thanks
 --------------
 
-Thanks to:
 - [Benjamin Gruenbaum](https://github.com/benjamingr) for helping improve performance.
