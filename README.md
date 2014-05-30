@@ -1,7 +1,7 @@
 CSV.js
 ======
 
-Simple, fast CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
+Simple, blazing-fast CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
 
 Compatible with browsers, AMD, and NodeJS.
 
@@ -196,3 +196,10 @@ new CSV(data).forEach(function(line) {
    */
 });
 ```
+
+
+Special Thanks
+--------------
+
+Thanks to:
+- [Benjamin Gruenbaum](https://github.com/benjamingr) for helping improve performance.

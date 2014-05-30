@@ -214,7 +214,7 @@
   };
 
   CSV.prototype.forEach = function(stream) {
-    return this.data instanceof Array ? this.encode(stream) : this.parse(stream);
+    return this[this.action](stream);
   };
 
   // Define this module
