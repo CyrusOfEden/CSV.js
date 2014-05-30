@@ -1,0 +1,8 @@
+Parse: CSV#parse x 241 ops/sec ±0.49% (90 runs sampled)
+Parse: CSV#forEach x 241 ops/sec ±0.10% (90 runs sampled)
+Parse, Header: CSV#parse x 211 ops/sec ±0.27% (92 runs sampled)
+Parse, Header: CSV#forEach x 210 ops/sec ±0.30% (91 runs sampled)
+Encode: CSV#encode x 372 ops/sec ±0.19% (97 runs sampled)
+Encode: CSV#forEach x 372 ops/sec ±0.60% (92 runs sampled)
+Encode, Header: CSV#encode x 347 ops/sec ±0.22% (91 runs sampled)
+Encode, Header: CSV#forEach x 357 ops/sec ±0.39% (89 runs sampled)

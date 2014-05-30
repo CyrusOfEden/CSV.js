@@ -5,19 +5,60 @@
   var AMD = (typeof define === "function" && define.amd),
       NODE = (typeof module === "object" && module.exports);
 
-  var FLOAT = /^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/;
-  var PRESENT = function(possible) { return !!(possible && possible !== null); };
+  var PRESENT = function(possible) {
+        return !!(possible && possible !== null);
+      },
+      FLOAT = /^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/,
+      BOOL = function(possible) {
+        possible = possible.toLowerCase();
+        return (possible === "true" || possible === "false");
+      };
+
+  var Builder = function(type, schema, sample) {
+    var code = "return ",
+        i = 0,
+        cast = function(element, i) {
+          if (FLOAT.test(element)) {
+            return "Number(values[" + i + "]),";
+          } else if (BOOL(element)) {
+            return "values[" + i + "].toLowerCase() === 'true',";
+          } else {
+            return "values[" + i + "],";
+          }
+        };
+
+    if (type === "object") {
+      code += "{";
+      for (i = 0; i < schema.length; ++i) code += '"' + schema[i] + '": ' + cast(sample[i], i);
+      code = code.slice(0, -1) + "}";
+    } else {
+      code += "[";
+      for (i = 0; i < schema.length; ++i) code += cast(schema[i], i);
+      code = code.slice(0, -1) + "]";
+    }
+    return new Function("values", code);
+  };
 
   var CSV = function(data, set) {
-    this.data = data;
     set = PRESENT(set) ? set : {};
 
     this.options = {
-      cast: PRESENT(set.cast) ? set.cast : true,
+      line: PRESENT(set.line) ? set.line : "\r\n",
       delimiter: PRESENT(set.delimiter) ? set.delimiter : ",",
       header: PRESENT(set.header) ? set.header : false,
       done: PRESENT(set.done) ? set.done : undefined
     };
+
+    this.action = (data instanceof Array) ? "encode" : "parse";
+    this.data = data;
+
+    var line = this.options.line,
+        _lil = line.length - 1,
+        _lid = data.length - 1,
+        cc = function(text, i) { return text.charCodeAt(i); };
+    if (this.action === "parse" && cc(data, _lid) !== cc(line, _lil)) {
+      this.data += line;
+    }
 
     return this;
   };
@@ -27,50 +68,66 @@
     return this;
   };
 
-  CSV.format = {
-    cast: function(string) {
-      return FLOAT.test(string) ? Number(string) : string;
-    },
-    stringify: function(string) {
-      return FLOAT.test(string) ? string : '"' + string.replace(/\"/, '""') + '"';
-    },
-    encode: function(array, delimiter) {
-      return array.map(CSV.format.stringify).join(delimiter) + "\r\n";
-    }
-  };
-
   CSV.prototype.encode = function(stream) {
-    stream = stream || [].push;
+    if (this.data.length === 0) return "";
 
     var data = this.data,
         response = [],
+        delimiter = this.options.delimiter,
         kind = data[0] instanceof Array ? "array" : "object",
         header = this.options.header,
-        fields = header instanceof Array ? header : [],
-        delimiter = this.options.delimiter,
         complete = this.options.done,
 
-        save = function(record) {
-          stream.call(response, CSV.format.encode(record, delimiter));
-        };
+        stringify = function(value) {
+          return FLOAT.test(value) ? value : '"' + value.replace(/\"/g, '""') + '"';
+        },
 
-    if (kind === "object" && !fields.length) fields = Object.keys(data[0]);
-    if (header) save(fields);
+        save = stream ? function(line) {
+          stream(line.join(delimiter));
+        } : function(line) {
+          response.push(line.join(delimiter));
+        },
+
+        _lend = data.length,
+        _i, _k, fields, _lenf, line, record;
 
     if (kind === "object") {
-      data.forEach(function(record) {
-        record = fields.map(function(key) { return record[key]; });
-        save(record);
-      });
+      fields = Object.keys(data[0]);
+      _lenf = fields.length;
     } else {
-      data.forEach(function(record) { save(record); });
+      _lenf = data[0].length;
     }
+
+    record = new Array(_lenf);
+
+    if (header) {
+      var columns = header instanceof Array ? header : fields;
+      for (_k = 0; _k < _lenf; ++_k) record[_k] = stringify(columns[_k]);
+      save(record);
+    }
+
+    if (kind === "object") {
+      for (_i = 0; _i < _lend; ++_i) {
+        line = data[_i];
+        for (_k = 0; _k < _lenf; ++_k) record[_k] = stringify(line[fields[_k]]);
+        save(record);
+      }
+    } else {
+      for (_i = 0; _i < _lend; ++_i) {
+        line = data[_i];
+        for (_k = 0; _k < _lenf; ++_k) record[_k] = stringify(line[_k]);
+        save(record);
+      }
+    }
+
     // Return as appropriate
-    return complete ? complete(response) : response.join("");
+    response = response.join(this.options.line);
+    if (complete) complete(response);
+    return response;
   };
 
   CSV.prototype.parse = function(stream) {
-    stream = stream || [].push;
+    if (this.data.trim().length === 0) return [];
 
     var data = this.data,
         response = [],
@@ -78,71 +135,52 @@
         header = this.options.header,
         fields = header instanceof Array ? header : [],
 
-        _n = 0,
         _lenf = fields.length,
 
         current = { row: [], cell: "" },
         flag = { escaped: false, quote: false, cell: true },
 
-        Record = function(values) {
-          for (_n = 0; _n < _lenf; ++_n) this[fields[_n]] = values[_n];
+        Record,
+        save = function(cell) {
+          current.row.push(
+            (flag.escaped ? cell.slice(1, -1).replace(/""/g, '"') : cell).trim()
+          );
+          current.cell = "";
+          flag = { escaped: false, quote: false, cell: true };
+        },
+        apply = stream ? function() {
+          stream(new Record(current.row));
+        } : function() {
+          response.push(new Record(current.row));
+        },
+        send = function() {
+          if (header) {
+            if (_lenf) {
+              Record = new Builder("object", fields, current.row);
+              apply();
+              send = apply;
+            } else {
+              fields = current.row, _lenf = fields.length;
+            }
+          } else {
+            if (!Record) Record = new Builder("array", current.row);
+            apply();
+            send = apply;
+          }
         },
 
-        reset,
-        save,
-        send;
-
-
-    fields.forEach(function(field) { Record.prototype[field] = undefined; });
-
-    reset = function() {
-      current.cell = "";
-      flag = { escaped: false, quote: false, cell: true };
-    };
-
-    if (this.options.cast) {
-      save = function(cell) {
-        current.row.push(
-          CSV.format.cast(
-            (flag.escaped ? cell.slice(1, -1).replace(/""/g, '"') : cell).trim()
-          )
-        );
-      };
-    } else {
-      save = function(cell) {
-        current.row.push(
-          (flag.escaped ? cell.slice(1, -1).replace(/""/g, '"') : cell).trim()
-        );
-      };
-    }
-
-    if (_lenf) {
-      send = function() {
-        stream.call(response, new Record(current.row));
-      };
-    } else if (header) {
-      send = function() {
-        if (_lenf) {
-          stream.call(response, new Record(current.row));
-        } else {
-          fields = current.row, _lenf = fields.length;
-        }
-      };
-    } else {
-      send = function() {
-        stream.call(response, current.row);
-      };
-    }
-
-    var start,
+        start,
         _i,
         _lent = data.length,
+        _line = this.options.line.charCodeAt(this.options.line.length - 1),
         _delim = this.options.delimiter.charCodeAt(0),
+        prev,
         sign;
 
-    for (start = 0, _i = 0; _i < _lent; ++_i) {
-      sign = data.charCodeAt(_i);
 
+    for (start = 0, _i = 0; _i <= _lent; ++_i) {
+      prev = data.charCodeAt(_i - 1);
+      sign = data.charCodeAt(_i);
       if (flag.cell) {
         flag.cell = false;
         if (sign === 34) {
@@ -158,28 +196,26 @@
         if (sign === _delim) {
           save(current.cell + data.slice(start, _i));
           start = _i + 1;
-          reset();
-        } else if (sign === 10) {
-          save((current.cell + data.slice(start, _i)).slice(0, -1));
+        } else if (sign === _line) {
+          if (prev < 33) {
+            save((current.cell + data.slice(start, _i)).slice(0, -1));
+          } else {
+            save((current.cell + data.slice(start, _i)));
+          }
           start = _i + 1;
           send();
-          reset();
           current.row = [];
-        } else if (_i === _lent - 1) {
-          save(current.cell + data.slice(start, _i + 1));
-          send();
         }
       }
     }
     // Return as appropriate
-    return complete ? complete(response) : response;
+    if (complete) complete(response);
+    return response;
   };
 
   CSV.prototype.forEach = function(stream) {
     return this.data instanceof Array ? this.encode(stream) : this.parse(stream);
   };
-
-  CSV.prototype.each = CSV.prototype.forEach;
 
   // Define this module
   if (AMD) {

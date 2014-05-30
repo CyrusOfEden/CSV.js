@@ -22,7 +22,7 @@ describe("CSV", function() {
 
   describe("#parse()", function() {
     it("should return nothing if no data", function() {
-      var expected = [[""]],
+      var expected = [],
           actual = "";
       assert.deepEqual(expected, new CSV(actual).parse());
     });
