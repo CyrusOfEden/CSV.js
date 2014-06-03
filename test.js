@@ -9,6 +9,8 @@ var sets = ["marriage_census", "worldbank"],
       malformed: {}
     };
 
+
+
 ["marriage_census", "worldbank"].forEach(function(set) {
   fs.readFile("./datasets/csv/" + set + ".csv", "utf8", function(err, res) {
     data[set].csv = res;
@@ -30,20 +32,20 @@ describe("CSV", function() {
       var expected = [
             [[1, 2, "3,4"]],
             [[1, 2, "\"3,4\""]],
-            [[1, 2, "3\r\n4"]],
+            [[1, 2, "3\n4"]],
             [[1, 2, "3\n4"]],
             [[1, 2, "3\n4"]]
           ],
           actual = [
             '1,2,"3,4"',
             '1,2,"""3,4"""',
-            '1,2,"3\r\n4"',
+            '1,2,"3\n4"',
             '1,2,"3\n4"',
             '1,2,"3\n4"'
           ];
 
       expected.map(function(result, index) {
-        assert.deepEqual(result, new CSV(actual[index]).parse());
+        assert.deepEqual(result, new CSV(actual[index], { line: "\n" }).parse());
       });
     });
     it("should parse with no headers", function() {
@@ -57,7 +59,7 @@ describe("CSV", function() {
       assert.deepEqual(expected, new CSV(actual, { header: true }).parse());
     });
     it("should parse files", function() {
-      var options = { header: true };
+      var options = { header: true, line: "\n" };
       sets.forEach(function(set) {
         assert.deepEqual(data[set].json, new CSV(data[set].csv, options).parse());
       });
@@ -74,20 +76,20 @@ describe("CSV", function() {
       var expected = [
             '1,2,"3,4"',
             '1,2,"""3,4"""',
-            '1,2,"3\r\n4"',
+            '1,2,"3\n4"',
             '1,2,"3\n4"',
             '1,2,"3\n4"'
           ],
           actual = [
             [[1, 2, "3,4"]],
             [[1, 2, "\"3,4\""]],
-            [[1, 2, "3\r\n4"]],
+            [[1, 2, "3\n4"]],
             [[1, 2, "3\n4"]],
             [[1, 2, "3\n4"]]
           ];
 
       expected.map(function(result, index) {
-        assert.deepEqual(result, new CSV(actual[index]).encode());
+        assert.deepEqual(result, new CSV(actual[index], { line: "\n" }).encode());
       });
     });
     it("should encode with no headers", function() {
