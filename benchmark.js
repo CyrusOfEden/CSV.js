@@ -1,19 +1,20 @@
-var Benchmark = require('benchmark'),
-    CSV = require("./csv"),
-    fs = require("fs"),
-    csv, json,
-    results = [];
+var
 
-var Parse = new Benchmark.Suite("Parse"),
-    ParseHeader = new Benchmark.Suite("Parse, Header"),
-    Encode = new Benchmark.Suite("Encode"),
-    EncodeHeader = new Benchmark.Suite("Encode, Header");
+Benchmark = require('benchmark'),
+CSV = require("./csv"),
+fs = require("fs"),
+csv, json,
+results = [],
 
+Parse = new Benchmark.Suite("Parse"),
+ParseHeader = new Benchmark.Suite("Parse, Header"),
+Encode = new Benchmark.Suite("Encode"),
+EncodeHeader = new Benchmark.Suite("Encode, Header"),
 
-var options = {
-      normal: { line: "\n" },
-      header: { line: "\n", header: true }
-    };
+options = {
+  normal: { line: "\n" },
+  header: { line: "\n", header: true }
+};
 
 
 Parse.
@@ -21,9 +22,7 @@ Parse.
     new CSV(csv, options.normal).parse();
   }).
   add("CSV#forEach", function() {
-    new CSV(csv, options.normal).forEach(function(record) {
-      record;
-    });
+    new CSV(csv, options.normal).forEach(function(record) { record; });
   });
 
 ParseHeader.
@@ -31,9 +30,7 @@ ParseHeader.
     new CSV(csv, options.header).parse();
   }).
   add("CSV#forEach", function() {
-    new CSV(csv, options.header).forEach(function(record) {
-      record;
-    });
+    new CSV(csv, options.header).forEach(function(record) { record; });
   });
 
 
@@ -42,9 +39,7 @@ Encode.
     new CSV(json, options.normal).encode();
   }).
   add("CSV#forEach", function() {
-    new CSV(json, options.normal).forEach(function(record) {
-      record;
-    });
+    new CSV(json, options.normal).forEach(function(record) { record; });
   });
 
 EncodeHeader.
@@ -52,9 +47,7 @@ EncodeHeader.
     new CSV(json, options.header).encode();
   }).
   add("CSV#forEach", function() {
-    new CSV(json, options.header).forEach(function(record) {
-      record;
-    });
+    new CSV(json, options.header).forEach(function(record) { record; });
   });
 
 
@@ -64,11 +57,8 @@ function log(suite) {
   suite.forEach(function(bench) {
     result = suite.name + ": " + bench.toString();
     results.push(result);
-    console.log(result);
   });
-  if (results.length === 8) {
-    fs.writeFile("./stats.txt", results.join("\n"));
-  }
+  if (results.length === 8) fs.writeFile("./stats.txt", results.join("\n"));
 }
 
 

@@ -23,6 +23,7 @@ Create a CSV instance with `var csv = new CSV(data);`, where `data` is the plain
 Options
 -------
 
+- **`cast`**: `true` to automatically cast numbers and booleans to their JavaScript equivalents. `false` otherwise. Defaults to `true`.
 - **`line`**: The `string` that separates lines from one another. Defaults to `'\r\n'`.
 - **`delimiter`**: A 1-character-long `string` that separates values from one another. Defaults to `','`.
 - **`header`**: `true` if the first row of the CSV contains header values, or supply your own `array`. Defaults to `false`.

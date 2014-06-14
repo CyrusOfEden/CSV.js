@@ -2,7 +2,7 @@
   'use strict';
 
   var PRESENT = function(possible) {
-        return !!(possible && possible !== null);
+        return typeof possible !== "undefined";
       },
       FLOAT = /^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/,
       BOOL = function(possible) {
@@ -10,16 +10,18 @@
         return (possible === "true" || possible === "false");
       };
 
-  var Builder = function(type, schema, sample) {
+  var Builder = function(type, schema, sample, shouldCast) {
     var code = "return ",
-        cast = function(element, index) {
+        cast = shouldCast ? function(element, index) {
           if (FLOAT.test(element)) {
             return "Number(values[" + index + "]),";
           } else if (BOOL(element)) {
             return "Boolean(values[" + index + "].toLowerCase() === 'true'),";
           } else {
-            return "values[" + index + "],";
+            return "String(values[" + index + "]),";
           }
+        } : function(element, index) {
+          return "values[" + index + "],";
         },
         _index;
 
@@ -32,33 +34,24 @@
     } else {
       code += "[";
       for (_index = 0; _index < schema.length; ++_index) {
-        code += cast(schema[_index], _index);
+        code += cast(sample[_index], _index);
       }
       code = code.slice(0, -1) + "]";
     }
-    return new Function("values", code);
+    return new Function("values", "cheese", code);
   };
 
   var CSV = function(data, set) {
     set = PRESENT(set) ? set : {};
 
     this.options = {
+      cast: PRESENT(set.cast) ? set.cast : true,
       line: PRESENT(set.line) ? set.line : "\r\n",
       delimiter: PRESENT(set.delimiter) ? set.delimiter : ",",
       header: PRESENT(set.header) ? set.header : false,
       done: PRESENT(set.done) ? set.done : undefined
     };
-
-    this.action = (data instanceof Array) ? "encode" : "parse";
     this.data = data;
-
-    var line = this.options.line,
-        _lil = line.length - 1,
-        _lid = data.length - 1,
-        cc = function(text, i) { return text.charCodeAt(i); };
-    if (this.action === "parse" && cc(data, _lid) !== cc(line, _lil)) {
-      this.data += line;
-    }
 
     return this;
   };
@@ -138,6 +131,7 @@
     var data = this.data,
         response = [],
         complete = this.options.done,
+        shouldCast = this.options.cast,
         header = this.options.header,
         fields = header instanceof Array ? header : [],
 
@@ -166,14 +160,14 @@
         sendRow = function() {
           if (header) {
             if (_fieldsLength) {
-              Record = new Builder("object", fields, current.row);
+              Record = new Builder("object", fields, current.row, shouldCast);
               apply();
               sendRow = apply;
             } else {
               fields = current.row, _fieldsLength = fields.length;
             }
           } else {
-            if (!Record) Record = new Builder("array", current.row);
+            if (!Record) Record = new Builder("array", current.row, current.row, shouldCast);
             apply();
             sendRow = apply;
           }
@@ -186,6 +180,8 @@
         _cellDelim = this.options.delimiter.charCodeAt(0),
         currentChar;
 
+    if (data.charCodeAt(_dataLength - 1) !== _lineDelim) data += _line;
+    console.log(JSON.stringify(data));
 
     for (start = 0, _index = 0; _index <= _dataLength; ++_index) {
       currentChar = data.charCodeAt(_index);
@@ -218,7 +214,7 @@
   };
 
   CSV.prototype.forEach = function(stream) {
-    return this[this.action](stream);
+    return data instanceof Array ? this.encode(stream) : this.parse(stream);
   };
 
   // Define this module
