@@ -1,7 +1,7 @@
 {
   "name": "comma-separated-values",
   "main": "csv.js",
-  "version": "3.1.3",
+  "version": "3.2.0",
   "homepage": "https://github.com/knrz/CSV.js",
   "authors": [
     "Kash Nouroozi <hi@knrz.co>"
