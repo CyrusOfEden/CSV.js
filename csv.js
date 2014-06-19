@@ -181,7 +181,6 @@
         currentChar;
 
     if (data.charCodeAt(_dataLength - 1) !== _lineDelim) data += _line;
-    console.log(JSON.stringify(data));
 
     for (start = 0, _index = 0; _index <= _dataLength; ++_index) {
       currentChar = data.charCodeAt(_index);
