@@ -149,7 +149,7 @@ Returns:
 Streaming
 ---------
 
-If the dataset that you've provided is to be parsed, calling `CSV.prototype.forEach` (or `CSV.prototype.each`) and supplying a function will call your function and supply it with the parsed record immediately after it's been parsed.
+If the dataset that you've provided is to be parsed, calling `CSV.prototype.forEach` and supplying a function will call your function and supply it with the parsed record immediately after it's been parsed.
 
 ```javascript
 var data = '\
