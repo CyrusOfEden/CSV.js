@@ -72,6 +72,7 @@
         complete = this.options.done,
 
         stringify = function(value) {
+          if (!value) return null;
           return FLOAT.test(value) ? value : '"' + value.replace(/\"/g, '""') + '"';
         },
 
