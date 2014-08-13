@@ -73,7 +73,7 @@
 
         stringify = function(value) {
           if (!value) return null;
-          return FLOAT.test(value) ? value : '"' + value.replace(/\"/g, '""') + '"';
+          return (typeof value !== 'string') ? value : '"' + value.replace(/\"/g, '""') + '"';
         },
 
         sendLine = stream ? function(line) {
