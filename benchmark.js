@@ -22,7 +22,7 @@ Parse.
     new CSV(csv, options.normal).parse();
   }).
   add("CSV#forEach", function() {
-    new CSV(csv, options.normal).forEach(function(record) { record; });
+    new CSV(csv, options.normal).forEach(function(record) { return record; });
   });
 
 ParseHeader.
@@ -30,7 +30,7 @@ ParseHeader.
     new CSV(csv, options.header).parse();
   }).
   add("CSV#forEach", function() {
-    new CSV(csv, options.header).forEach(function(record) { record; });
+    new CSV(csv, options.header).forEach(function(record) { return record; });
   });
 
 
@@ -39,7 +39,7 @@ Encode.
     new CSV(json, options.normal).encode();
   }).
   add("CSV#forEach", function() {
-    new CSV(json, options.normal).forEach(function(record) { record; });
+    new CSV(json, options.normal).forEach(function(record) { return record; });
   });
 
 EncodeHeader.
@@ -47,7 +47,7 @@ EncodeHeader.
     new CSV(json, options.header).encode();
   }).
   add("CSV#forEach", function() {
-    new CSV(json, options.header).forEach(function(record) { record; });
+    new CSV(json, options.header).forEach(function(record) { return record; });
   });
 
 
@@ -57,17 +57,18 @@ function log(suite) {
   suite.forEach(function(bench) {
     result = suite.name + ": " + bench.toString();
     results.push(result);
+    console.log(result);
   });
-  if (results.length === 8) fs.writeFile("./stats.txt", results.join("\n"));
+  if (results.length === 8) fs.writeFile('./stats.txt', results.join('\n'));
 }
 
 
-fs.readFile("./datasets/csv/marriage_census.csv", "utf8", function(err, res) {
+fs.readFile("./datasets/csv/marriage_census.csv", 'utf8', function(err, res) {
   csv = res;
   [Parse, ParseHeader].forEach(log);
 });
 
-fs.readFile("./datasets/json/marriage_census.json", "utf8", function(err, res) {
+fs.readFile("./datasets/json/marriage_census.json", 'utf8', function(err, res) {
   json = JSON.parse(res);
   [Encode, EncodeHeader].forEach(log);
 });

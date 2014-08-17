@@ -38,16 +38,17 @@
       }
       code = code.slice(0, -1) + "]";
     }
-    return new Function("values", "cheese", code);
+    return new Function("values", code);
   };
 
   var CSV = function(data, set) {
     set = PRESENT(set) ? set : {};
 
     this.options = {
+      async: PRESENT(set.async) ? set.async : false,
       cast: PRESENT(set.cast) ? set.cast : true,
-      line: PRESENT(set.line) ? set.line : "\r\n",
-      delimiter: PRESENT(set.delimiter) ? set.delimiter : ",",
+      line: PRESENT(set.line) ? set.line : '\r\n',
+      delimiter: PRESENT(set.delimiter) ? set.delimiter : ',',
       header: PRESENT(set.header) ? set.header : false,
       done: PRESENT(set.done) ? set.done : undefined
     };
@@ -62,12 +63,12 @@
   };
 
   CSV.prototype.encode = function(stream) {
-    if (this.data.length === 0) return "";
+    if (this.data.length === 0) return '';
 
     var data = this.data,
         response = [],
         delimiter = this.options.delimiter,
-        kind = data[0] instanceof Array ? "array" : "object",
+        kind = data[0] instanceof Array ? 'array' : 'object',
         header = this.options.header,
         complete = this.options.done,
 
@@ -213,7 +214,7 @@
   };
 
   CSV.prototype.forEach = function(stream) {
-    return data instanceof Array ? this.encode(stream) : this.parse(stream);
+    return this.data instanceof Array ? this.encode(stream) : this.parse(stream);
   };
 
   // Define this module
@@ -221,7 +222,7 @@
     define(CSV);
   } else if (typeof module === "object" && module.exports) {
     module.exports = CSV;
-  } else {
+  } else if (window && this === window) {
     this.CSV = CSV;
   }
 
