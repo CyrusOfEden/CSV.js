@@ -220,9 +220,7 @@
 
   // Define this module
   if (typeof define === "function" && define.amd) {
-    define(function() {
-      return CSV;
-    });
+    define(function() { return CSV; });
   } else if (typeof module === "object" && module.exports) {
     module.exports = CSV;
   } else if (window && this === window) {
