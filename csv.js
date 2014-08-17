@@ -54,6 +54,14 @@
     };
     this.data = data;
 
+    if (this.data instanceof Array) return this;
+
+    for (var _i = 0; _i < this.options.line.length; _i++) {
+      var _dataChar = data.charCodeAt(data.length - this.options.line.length + _i),
+          _lineChar = this.options.line.charCodeAt(_i);
+      if (_dataChar != _lineChar) this.data += this.options.line.charAt(_i);
+    }
+
     return this;
   };
 
@@ -181,8 +189,6 @@
         _lineDelim = _line.charCodeAt(_line.length - 1),
         _cellDelim = this.options.delimiter.charCodeAt(0),
         currentChar;
-
-    if (data.charCodeAt(_dataLength - 1) !== _lineDelim) data += _line;
 
     for (start = 0, _index = 0; _index <= _dataLength; ++_index) {
       currentChar = data.charCodeAt(_index);
