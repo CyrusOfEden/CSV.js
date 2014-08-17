@@ -1,7 +1,7 @@
 {
   "name": "comma-separated-values",
-  "version": "3.2.1",
-  "description": "Simple CSV parsing and encoding. Full RFC 4180 compliance.",
+  "version": "3.2.2",
+  "description": "Simple, blazing-fast CSV parsing/encoding in JavaScript. Full RFC 4180 compliance.",
   "main": "csv.js",
   "scripts": {
     "test": "mocha test.js",
