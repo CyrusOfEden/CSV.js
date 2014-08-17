@@ -73,7 +73,8 @@
         complete = this.options.done,
 
         stringify = function(value) {
-          return FLOAT.test(value) ? value : '"' + value.replace(/\"/g, '""') + '"';
+          if (!value) return null;
+          return (typeof value !== 'string') ? value : '"' + value.replace(/\"/g, '""') + '"';
         },
 
         sendLine = stream ? function(line) {
@@ -219,7 +220,9 @@
 
   // Define this module
   if (typeof define === "function" && define.amd) {
-    define(CSV);
+    define(function() {
+      return CSV;
+    });
   } else if (typeof module === "object" && module.exports) {
     module.exports = CSV;
   } else if (window && this === window) {
