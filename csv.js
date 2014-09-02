@@ -2,12 +2,12 @@
   'use strict';
 
   var PRESENT = function(possible) {
-        return typeof possible !== "undefined";
+        return possible != null;
       },
       FLOAT = /^(\-|\+)?([0-9]+(\.[0-9]+)?|Infinity)$/,
-      BOOL = function(possible) {
-        possible = possible.toLowerCase();
-        return (possible === "true" || possible === "false");
+      BOOL = function(potential) {
+        potential = potential.toLowerCase();
+        return (potential === "true" || potential === "false");
       };
 
   var Builder = function(type, schema, sample, shouldCast) {
@@ -81,8 +81,11 @@
         complete = this.options.done,
 
         stringify = function(value) {
-          if (!value) return null;
-          return (typeof value !== 'string') ? value : '"' + value.replace(/\"/g, '""') + '"';
+          if (PRESENT(value)) {
+            return (typeof value !== 'string') ? value : '"' + value.replace(/\"/g, '""') + '"';
+          } else {
+            return null;
+          }
         },
 
         sendLine = stream ? function(line) {
@@ -229,8 +232,8 @@
     define(function() { return CSV; });
   } else if (typeof module === "object" && module.exports) {
     module.exports = CSV;
-  } else if (window && this === window) {
-    this.CSV = CSV;
+  } else if (window) {
+    window.CSV = CSV;
   }
 
-}).call(this);
+})();
