@@ -8,7 +8,10 @@
       BOOL = function(potential) {
         potential = potential.toLowerCase();
         return (potential === "true" || potential === "false");
-      };
+      },
+      ESCAPE_DELIMITERS = ['|', '^'],
+      COLUMN_DELIMITERS = [',', ';', '\t', '|', '^'],
+      LINE_DELIMITERS = ['\r\n', '\r', '\n'];
 
   var Builder = function(type, schema, sample, shouldCast) {
     var code = "return ",
@@ -41,28 +44,48 @@
     return new Function("values", code);
   };
 
-  var CSV = function(data, set) {
-    set = PRESENT(set) ? set : {};
+  var detectDelimiter = function(string, delimiters) {
+    var count = 0,
+        detected;
+    for (var _i = 0, _len = delimiters.length; _i < _len; _i++) {
+      var delimiter = delimiters[_i],
+          needle = ESCAPE_DELIMITERS.indexOf(delimiter) == -1 ? delimiter : '\\' + delimiter,
+          matches = string.match(new RegExp(needle, 'g'));
+      if (matches && matches.length > count) {
+        count = matches.length;
+        detected = delimiter;
+      }
+    }
+    return (detected || delimiters[0]);
+  };
 
-    this.options = {
-      async: PRESENT(set.async) ? set.async : false,
-      cast: PRESENT(set.cast) ? set.cast : true,
-      line: PRESENT(set.line) ? set.line : '\r\n',
-      delimiter: PRESENT(set.delimiter) ? set.delimiter : ',',
-      header: PRESENT(set.header) ? set.header : false,
-      done: PRESENT(set.done) ? set.done : undefined
-    };
+  var CSV = function(data, options) {
+    options = PRESENT(options) ? options : {};
+
     this.data = data;
-
-    if (this.data instanceof Array) return this;
-
-    for (var _i = 0; _i < this.options.line.length; _i++) {
-      var _dataChar = data.charCodeAt(data.length - this.options.line.length + _i),
-          _lineChar = this.options.line.charCodeAt(_i);
-      if (_dataChar != _lineChar) this.data += this.options.line.charAt(_i);
+    this.options = {
+      header: PRESENT(options.header) ? options.header : false,
+      cast: PRESENT(options.cast) ? options.cast : true,
+      line: options.line,
+      delimiter: options.delimiter
     }
 
-    return this;
+    if (this.data instanceof Array) {
+      this.options.line = PRESENT(options.line) ? options.line : '\r\n';
+      this.options.delimiter = PRESENT(options.delimiter) ? options.delimiter : ',';
+    } else {
+      if (!this.options.line) {
+        this.options.line = detectDelimiter(this.data, LINE_DELIMITERS);
+      }
+      if (!this.options.delimiter) {
+        this.options.delimiter = detectDelimiter(this.data, COLUMN_DELIMITERS);
+      }
+      for (var _i = 0; _i < this.options.line.length; _i++) {
+        var _dataChar = data.charCodeAt(data.length - this.options.line.length + _i),
+            _lineChar = this.options.line.charCodeAt(_i);
+        if (_dataChar != _lineChar) this.data += this.options.line.charAt(_i);
+      }
+    }
   };
 
   CSV.prototype.set = function(option, value) {
