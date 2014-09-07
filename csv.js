@@ -15,11 +15,14 @@
   function isString(object) {
     return toString.call(object) === '[object String]';
   }
-  function isNumber(string) {
-    return !isNaN(Number(string));
+  function isNumber(value) {
+    return !isNaN(Number(value));
   }
-  function isBoolean(string) {
-    return string == false || string == true;
+  function isBoolean(value) {
+    return value == false || value == true;
+  }
+  function isNull(value) {
+    return value == null;
   }
   function isPresent(value) {
     return value == null;
@@ -100,18 +103,18 @@
 
       this.options = {
         header: fallback(options.header, true),
-        lineDelimiter: fallback(options.lineDelimiter, '\r\n'),
-        cellDelimiter: fallback(options.cellDelimiter, ',')
       }
 
+      var lineDelimiter = options.lineDelimiter || options.line,
+          cellDelimiter = options.cellDelimiter || options.delimiter;
+
       if (this.isParser()) {
-        if (!this.options.lineDelimiter) {
-          this.options.lineDelimiter = detectDelimiter(this.data, LINE_DELIMITERS);
-        }
-        if (!this.options.cellDelimiter) {
-          this.options.cellDelimiter = detectDelimiter(this.data, CELL_DELIMITERS);
-        }
+        this.options.lineDelimiter = lineDelimiter || detectDelimiter(this.data, LINE_DELIMITERS);
+        this.options.cellDelimiter = cellDelimiter || detectDelimiter(this.data, CELL_DELIMITERS);
         this.data = normalizeCSV(this.data, this.options.lineDelimiter);
+      } else if (this.isEncoder()) {
+        this.options.lineDelimiter = lineDelimiter || '\r\n';
+        this.options.cellDelimiter = cellDelimiter || ',';
       }
     }
 
@@ -139,7 +142,8 @@
     CSV.prototype.parse = function(callback) {
       if (this.data.trim().length === 0) return [];
 
-      var options = this.options,
+      var data = this.data,
+          options = this.options,
           header = options.header,
           current = { cell: '', line: [] },
           flag, record, response;
@@ -151,9 +155,15 @@
         }
       }
 
-      function resetFlags() { flag = { escaped: false, quote: false, cell: true }; }
-      function resetCell() { current.cell = ''; }
-      function resetLine() { current.line = []; }
+      function resetFlags() {
+        flag = { escaped: false, quote: false, cell: true };
+      }
+      function resetCell() {
+        current.cell = '';
+      }
+      function resetLine() {
+        current.line = [];
+      }
 
       resetFlags();
 
@@ -185,13 +195,12 @@
         saveLastCell = saveCell;
       }
 
-      var data = this.data,
-          dataLength = data.length,
+      var dataLength = data.length,
           cellDelimiter = options.cellDelimiter.charCodeAt(0),
           lineDelimiter = options.lineDelimiter.charCodeAt(options.lineDelimiter.length - 1),
           currentIndex, cellStart, currentChar;
 
-      for (currentIndex = 0, cellStart = 0; currentIndex <dataLength; currentIndex++) {
+      for (currentIndex = 0, cellStart = 0; currentIndex < dataLength; currentIndex++) {
         currentChar = data.charCodeAt(currentIndex);
 
         if (flag.cell) {
@@ -220,11 +229,122 @@
         }
       }
 
-      return response;
+      if (response) {
+        return response;
+      } else {
+        return this;
+      }
+    }
+
+    function serializeType(object) {
+      if (isArray(object)) {
+        return 'array';
+      } else if (isObject(object)) {
+        return 'object';
+      } else if (isString(object)) {
+        return 'string';
+      } else if (isNull(object)) {
+        return 'null';
+      } else {
+        return 'primitive';
+      }
+    }
+
+    CSV.prototype.serialize = {
+      "object": function(object) {
+        var that = this,
+            attributes = Object.keys(object),
+            serialized = Array(attributes.length);
+        forEach(attributes, function(attr, index) {
+          serialized[index] = that[serializeType(object[attr])](object[attr]);
+        });
+        return serialized;
+      },
+      "array": function(array) {
+        var that = this,
+            serialized = Array(array.length);
+        forEach(array, function(value, index) {
+          serialized[index] = that[serializeType(value)](value);
+        });
+        return serialized;
+      },
+      "string": function(string) {
+        return '"' + string.replace(/"/g, '""') + '"';
+      },
+      "null": function(value) {
+        return '';
+      },
+      "primitive": function(value) {
+        return value;
+      }
     }
 
     CSV.prototype.encode = function(callback) {
+      if (this.data.length == 0) return '';
 
+      var data = this.data,
+          options = this.options,
+          header = options.header,
+          sample = data[0],
+          serialize = this.serialize,
+          offset = 0,
+          attributes, response;
+
+      if (!callback) {
+        response = Array(data.length);
+        callback = function(record, index) {
+          response[index + offset] = record;
+        }
+      }
+
+      function serializeLine(record) {
+        return record.join(options.cellDelimiter);
+      }
+
+      if (header) {
+        if (!isArray(header)) {
+          attributes = Object.keys(sample);
+          header = attributes;
+        }
+        callback(serializeLine(serialize.array(header)), 0);
+        offset = 1;
+      }
+
+      var recordType = serializeType(sample),
+          map;
+
+      if (recordType == 'array') {
+        map = Array(sample.length);
+        forEach(sample, function(value, index) {
+          map[index] = serializeType(value);
+        });
+        forEach(data, function(record, recordIndex) {
+          var serializedRecord = Array(map.length);
+          forEach(record, function(value, valueIndex) {
+            serializedRecord[valueIndex] = serialize[map[valueIndex]](value);
+          });
+          callback(serializeLine(serializedRecord), recordIndex);
+        });
+      } else if (recordType == 'object') {
+        attributes = Object.keys(sample);
+        map = Array(attributes.length);
+        forEach(attributes, function(attr, index) {
+          map[index] = serializeType(sample[attr]);
+        });
+        forEach(data, function(record, recordIndex) {
+          var serializedRecord = Array(attributes.length);
+          forEach(attributes, function(attr, attrIndex) {
+            serializedRecord[attrIndex] = serialize[map[attrIndex]](record[attr]);
+          });
+          callback(serializeLine(serializedRecord), recordIndex);
+        });
+      }
+
+      if (response) {
+        return response.join(options.lineDelimiter);
+      } else {
+        return this;
+      }
     }
 
     CSV.prototype.forEach = function(callback) {

@@ -95,7 +95,7 @@ describe("CSV", function() {
       assert.deepEqual(expected, new CSV(actual, { header: true }).encode());
     });
     it("should encode files", function() {
-      var options = { header: true, line: "\n" };
+      var options = { header: true, lineDelimiter: "\n" };
       sets.forEach(function(set) {
         assert.deepEqual(data[set].csv, new CSV(data[set].json, options).encode());
       });
