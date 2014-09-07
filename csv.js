@@ -115,7 +115,6 @@
       if (this.isParser()) {
         this.options.lineDelimiter = lineDelimiter || detectDelimiter(this.data, LINE_DELIMITERS);
         this.options.cellDelimiter = cellDelimiter || detectDelimiter(this.data, CELL_DELIMITERS);
-        this.options.optimize = fallback(options.optimize, false);
         this.data = normalizeCSV(this.data, this.options.lineDelimiter);
       } else if (this.isEncoder()) {
         this.options.lineDelimiter = lineDelimiter || '\r\n';
@@ -191,11 +190,7 @@
           }
         } else {
           if (!record) {
-            if (options.optimize) {
-              record = buildConstructor(current.line, range(current.line.length));
-            } else {
-              record = buildConstructor(current.line);
-            }
+            record = buildConstructor(current.line);
           }
           saveLine = function() { invoke(callback, record, current.line); };
           saveLine();
