@@ -66,8 +66,6 @@
     this.options = {
       header: PRESENT(options.header) ? options.header : false,
       cast: PRESENT(options.cast) ? options.cast : true,
-      line: options.line,
-      delimiter: options.delimiter
     }
 
     if (this.data instanceof Array) {

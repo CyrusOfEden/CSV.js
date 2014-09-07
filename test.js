@@ -38,7 +38,7 @@ describe("CSV", function() {
           ];
 
       expected.map(function(result, index) {
-        assert.deepEqual(result, new CSV(actual[index], { line: "\n" }).parse());
+        assert.deepEqual(result, new CSV(actual[index]).parse());
       });
     });
     it("should parse with no headers", function() {
@@ -52,9 +52,8 @@ describe("CSV", function() {
       assert.deepEqual(expected, new CSV(actual, { header: true }).parse());
     });
     it("should parse files", function() {
-      var options = { header: true, line: "\n" };
       sets.forEach(function(set) {
-        assert.deepEqual(data[set].json, new CSV(data[set].csv, options).parse());
+        assert.deepEqual(data[set].json, new CSV(data[set].csv, { header: true }).parse());
       });
     });
   });
