@@ -144,6 +144,8 @@
     }
 
     CSV.prototype.parse = function(callback) {
+      if (this.mode != 'parse') return;
+
       if (this.data.trim().length === 0) return [];
 
       var data = this.data,
@@ -286,6 +288,8 @@
     }
 
     CSV.prototype.encode = function(callback) {
+      if (this.mode != 'encode') return;
+
       if (this.data.length == 0) return '';
 
       var data = this.data,
