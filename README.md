@@ -17,7 +17,7 @@ If you use **Bower**, or **npm**, install the `comma-separated-values` package.
 Instantiation
 -------------
 
-Create a CSV instance with `var csv = new CSV(data);`, where `data` is the plain-text CSV file you want to work with. You can supply options with the format `var csv = new CSV(data, { option: value });`.
+Create a CSV instance with `var csv = new CSV(data);`, where `data` is a plain-text CSV string. You can supply options with the format `var csv = new CSV(data, { option: value });`.
 
 
 Options
