@@ -25,7 +25,7 @@
     return value == null;
   }
   function isPresent(value) {
-    return value == null;
+    return value != null;
   }
 
   function range(n) {
@@ -106,7 +106,7 @@
       this.data = data;
 
       this.options = {
-        header: fallback(options.header, true)
+        header: fallback(options.header, false)
       }
 
       var lineDelimiter = options.lineDelimiter || options.line,
