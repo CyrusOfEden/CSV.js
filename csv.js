@@ -64,9 +64,15 @@
     var definition = [];
     if (arguments.length == 2) {
       if (cast) {
-        forEach(values, function(value, index) {
-          definition.push(castCell(value, index));
-        });
+        if (isArray(cast)) {
+          forEach(values, function(value, index) {
+            definition.push(cast[index] + '(' + buildCell(index) + ')');
+          });
+        } else {
+          forEach(values, function(value, index) {
+            definition.push(castCell(value, index));
+          });
+        }
       } else {
         forEach(values, function(value, index) {
           definition.push(buildCell(index));
@@ -75,9 +81,15 @@
       definition = 'return [' + definition.join(',') + ']';
     } else {
       if (cast) {
-        forEach(values, function(value, index) {
-          definition.push('"' + attrs[index] + '": ' + castCell(value, index));
-        });
+        if (isArray(cast)) {
+          forEach(values, function(value, index) {
+            definition.push('"' + attrs[index] + '": ' + cast[index] + '(' + buildCell(index) + ')');
+          });
+        } else {
+          forEach(values, function(value, index) {
+            definition.push('"' + attrs[index] + '": ' + castCell(value, index));
+          });
+        }
       } else {
         forEach(values, function(value, index) {
           definition.push('"' + attrs[index] + '": ' + buildCell(index));
@@ -294,7 +306,7 @@
         return serialized;
       },
       "string": function(string) {
-        return '"' + string.replace(/"/g, '""') + '"';
+        return '"' + String(string).replace(/"/g, '""') + '"';
       },
       "null": function(value) {
         return '';
@@ -341,10 +353,17 @@
           map;
 
       if (recordType == 'array') {
-        map = Array(sample.length);
-        forEach(sample, function(value, index) {
-          map[index] = serializeType(value);
-        });
+        if (isArray(options.cast)) {
+          map = Array(options.cast.length);
+          forEach(options.cast, function(type, index) {
+            map[index] = type.toLowerCase();
+          });
+        } else {
+          map = Array(sample.length);
+          forEach(sample, function(value, index) {
+            map[index] = serializeType(value);
+          });
+        }
         forEach(data, function(record, recordIndex) {
           var serializedRecord = Array(map.length);
           forEach(record, function(value, valueIndex) {
@@ -354,10 +373,17 @@
         });
       } else if (recordType == 'object') {
         attributes = Object.keys(sample);
-        map = Array(attributes.length);
-        forEach(attributes, function(attr, index) {
-          map[index] = serializeType(sample[attr]);
-        });
+        if (isArray(options.cast)) {
+          map = Array(options.cast.length);
+          forEach(options.cast, function(type, index) {
+            map[index] = type.toLowerCase();
+          });
+        } else {
+          map = Array(attributes.length);
+          forEach(attributes, function(attr, index) {
+            map[index] = serializeType(sample[attr]);
+          });
+        }
         forEach(data, function(record, recordIndex) {
           var serializedRecord = Array(attributes.length);
           forEach(attributes, function(attr, attrIndex) {

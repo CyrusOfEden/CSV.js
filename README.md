@@ -23,7 +23,7 @@ Create a CSV instance with `var csv = new CSV(data);`, where `data` is a plain-t
 Options
 -------
 
-- **`cast`**: `true` to automatically cast numbers and booleans to their JavaScript equivalents. `false` otherwise. Defaults to `true`.
+- **`cast`**: `true` to automatically cast numbers and booleans to their JavaScript equivalents. `false` otherwise. Supply your own `array` to override autocasting. Defaults to `true`.
 - **`lineDelimiter`**: The `string` that separates lines from one another. If parsing, defaults to autodetection. If encoding, defaults to `'\r\n'`.
 - **`cellDelimiter`**: A 1-character-long `string` that separates values from one another. If parsing, defaults to autodetection. If encoding, defaults to `','`.
 - **`header`**: `true` if the first row of the CSV contains header values, or supply your own `array`. Defaults to `false`.
@@ -60,9 +60,15 @@ csv.forEach(function(record) {
 });
 
 // CSV includes some convenience class methods:
-CSV.parse(data, options) // identical to `new CSV(data, options).parse()`
-CSV.encode(data, options) // identical to `new CSV(data, options).encode()`
-CSV.forEach(data, options, callback) // identical to `new CSV(data, options).forEach(callback)`
+CSV.parse(data, options); // identical to `new CSV(data, options).parse()`
+CSV.encode(data, options); // identical to `new CSV(data, options).encode()`
+CSV.forEach(data, options, callback); // identical to `new CSV(data, options).forEach(callback)`
+
+// For overriding automatic casting, set `options.cast` to an array.
+// For `parsing`, valid array values are: 'Number', 'Boolean', and 'String'.
+CSV.parse(data, { cast: ['String', 'Number', 'Number', 'Boolean'] });
+// For `encoding`, valid array values are 'Array', 'Object', 'String', 'Null', and 'Primitive'.
+CSV.encode(data, { cast: ['Primitive', 'Primitive', 'String'] });
 ```
 
 
@@ -77,7 +83,7 @@ var data = '\
 1850,20,0,2,1003841\r\n\
 ...
 ';
-CSV.parse(data);
+new CSV(data).parse()
 /*
 Returns:
 [
@@ -231,6 +237,18 @@ new CSV(data).forEach(function(line) {
    */
 });
 ```
+
+Casting
+-------
+
+```javascript
+// For overriding automatic casting, set `options.cast` to an array.
+// For `parsing`, valid array values are: 'Number', 'Boolean', and 'String'.
+CSV.parse(data, { cast: ['String', 'Number', 'Number', 'Boolean'] });
+// For `encoding`, valid array values are 'Array', 'Object', 'String', 'Null', and 'Primitive'.
+CSV.encode(data, { cast: ['Primitive', 'Primitive', 'String'] });
+```
+
 
 Convenience Methods
 -------------------
