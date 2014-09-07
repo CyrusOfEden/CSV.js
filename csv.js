@@ -28,6 +28,10 @@
     return value == null;
   }
 
+  function range(n) {
+    return Array.apply(null, Array(n)).map(function (_, i) { return i; });
+  }
+
   function fallback(value, fallback) {
     return isPresent(value) ? value : fallback;
   }
@@ -102,7 +106,7 @@
       this.data = data;
 
       this.options = {
-        header: fallback(options.header, true),
+        header: fallback(options.header, true)
       }
 
       var lineDelimiter = options.lineDelimiter || options.line,
@@ -111,6 +115,7 @@
       if (this.isParser()) {
         this.options.lineDelimiter = lineDelimiter || detectDelimiter(this.data, LINE_DELIMITERS);
         this.options.cellDelimiter = cellDelimiter || detectDelimiter(this.data, CELL_DELIMITERS);
+        this.options.optimize = fallback(options.optimize, false);
         this.data = normalizeCSV(this.data, this.options.lineDelimiter);
       } else if (this.isEncoder()) {
         this.options.lineDelimiter = lineDelimiter || '\r\n';
@@ -179,13 +184,19 @@
         if (header) {
           if (isArray(header)) {
             record = buildConstructor(current.line, header);
-            saveLine = function() {   invoke(callback, record, current.line); };
+            saveLine = function() { invoke(callback, record, current.line); };
             saveLine();
           } else {
             header = current.line;
           }
         } else {
-          if (!record) record = buildConstructor(current.line);
+          if (!record) {
+            if (options.optimize) {
+              record = buildConstructor(current.line, range(current.line.length));
+            } else {
+              record = buildConstructor(current.line);
+            }
+          }
           saveLine = function() { invoke(callback, record, current.line); };
           saveLine();
         }
