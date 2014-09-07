@@ -62,7 +62,7 @@ function log(suite) {
 
 fs.readFile("./datasets/csv/marriage_census.csv", 'utf8', function(err, res) {
   csv = res;
-  [Parse, ParseOptimize, ParseHeader].forEach(log);
+  [Parse, ParseHeader].forEach(log);
 });
 
 fs.readFile("./datasets/json/marriage_census.json", 'utf8', function(err, res) {
