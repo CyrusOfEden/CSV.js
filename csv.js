@@ -46,27 +46,43 @@
     return collection;
   }
 
+  function buildCell(index) {
+    return 'attrs[' + index + ']';
+  }
+
   function castCell(value, index) {
     if (isNumber(value)) {
-      return 'Number(attrs[' + index + '])';
+      return 'Number(' + buildCell(index) + ')';
     } else if (isBoolean(value)) {
-      return 'Boolean(attrs[' + index + '] == true)';
+      return 'Boolean(' + buildCell(index) + ' == true)';
     } else {
-      return 'String(attrs[' + index + '])';
+      return 'String(' + buildCell(index) + ')';
     }
   }
 
-  function buildConstructor(values, attrs) {
+  function buildConstructor(cast, values, attrs) {
     var definition = [];
-    if (arguments.length == 1) {
-      forEach(values, function(value, index) {
-        definition.push(castCell(value, index));
-      });
+    if (arguments.length == 2) {
+      if (cast) {
+        forEach(values, function(value, index) {
+          definition.push(castCell(value, index));
+        });
+      } else {
+        forEach(values, function(value, index) {
+          definition.push(buildCell(index));
+        });
+      }
       definition = 'return [' + definition.join(',') + ']';
     } else {
-      forEach(values, function(value, index) {
-        definition.push('"' + attrs[index] + '": ' + castCell(value, index));
-      });
+      if (cast) {
+        forEach(values, function(value, index) {
+          definition.push('"' + attrs[index] + '": ' + castCell(value, index));
+        });
+      } else {
+        forEach(values, function(value, index) {
+          definition.push('"' + attrs[index] + '": ' + buildCell(index));
+        });
+      }
       definition = 'return {' + definition.join(',') + '}';
     }
     return new Function('attrs', definition);
@@ -106,7 +122,8 @@
       this.data = data;
 
       this.options = {
-        header: fallback(options.header, false)
+        header: fallback(options.header, false),
+        cast: fallback(options.cast, true)
       }
 
       var lineDelimiter = options.lineDelimiter || options.line,
@@ -184,7 +201,7 @@
       function saveLine() {
         if (header) {
           if (isArray(header)) {
-            record = buildConstructor(current.line, header);
+            record = buildConstructor(options.cast, current.line, header);
             saveLine = function() { invoke(callback, record, current.line); };
             saveLine();
           } else {
@@ -192,7 +209,7 @@
           }
         } else {
           if (!record) {
-            record = buildConstructor(current.line);
+            record = buildConstructor(options.cast, current.line);
           }
           saveLine = function() { invoke(callback, record, current.line); };
           saveLine();
