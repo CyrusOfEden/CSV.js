@@ -24,11 +24,46 @@ Options
 -------
 
 - **`cast`**: `true` to automatically cast numbers and booleans to their JavaScript equivalents. `false` otherwise. Defaults to `true`.
-- **`line`**: The `string` that separates lines from one another. If parsing, defaults to autodetection. If encoding, defaults to `'\r\n'`.
-- **`delimiter`**: A 1-character-long `string` that separates values from one another. If parsing, defaults to autodetection. If encoding, defaults to `','`.
+- **`lineDelimiter`**: The `string` that separates lines from one another. If parsing, defaults to autodetection. If encoding, defaults to `'\r\n'`.
+- **`cellDelimiter`**: A 1-character-long `string` that separates values from one another. If parsing, defaults to autodetection. If encoding, defaults to `','`.
 - **`header`**: `true` if the first row of the CSV contains header values, or supply your own `array`. Defaults to `false`.
 
 You can update an option's value any time after instantiation with `csv.set(option, value)`.
+
+
+Quickstart
+----------
+
+For those accustomed to JavaScript, the CSV.js API:
+
+```javascript
+// The instance will set itself up for parsing or encoding on instantiation,
+// which means that each instance can only either parse or encode.
+// The `options` object is optional
+var csv = new CSV(data, [options]);
+
+// If the data you've supplied is an array,
+// CSV#encode will return the encoded CSV.
+// It will otherwise fail silently.
+var encoded = csv.encode();
+
+// If the data you've suopplied is a string,
+// CSV#parse will return the parsed CSV.
+// It will otherwise fail silently.
+var parsed = csv.parse();
+
+// The CSV instance can return the record immediately after
+// it's been encoded or parsed to prevent storing the results
+// in a large array by calling CSV#forEach and passing in a function.
+csv.forEach(function(record) {
+  // do something with the record
+});
+
+// CSV includes some convenience class methods:
+CSV.parse(data, options) // identical to `new CSV(data, options).parse()`
+CSV.encode(data, options) // identical to `new CSV(data, options).encode()`
+CSV.forEach(data, options, callback) // identical to `new CSV(data, options).forEach(callback)`
+```
 
 
 Parsing
@@ -42,7 +77,7 @@ var data = '\
 1850,20,0,2,1003841\r\n\
 ...
 ';
-new CSV(data).parse();
+CSV.parse(data);
 /*
 Returns:
 [
@@ -195,6 +230,15 @@ new CSV(data).forEach(function(line) {
    *   "1850,20,0,1,1017281\r\n\""
    */
 });
+```
+
+Convenience Methods
+-------------------
+
+```javascript
+CSV.parse(data, options) // identical to `new CSV(data, options).parse()`
+CSV.encode(data, options) // identical to `new CSV(data, options).encode()`
+CSV.forEach(data, options, callback) // identical to `new CSV(data, options).forEach(callback)`
 ```
 
 
