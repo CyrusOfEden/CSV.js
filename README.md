@@ -25,7 +25,7 @@ Options
 
 - **`cast`**: `true` to automatically cast numbers and booleans to their JavaScript equivalents. `false` otherwise. Supply your own `array` to override autocasting. Defaults to `true`.
 - **`lineDelimiter`**: The `string` that separates lines from one another. If parsing, defaults to autodetection. If encoding, defaults to `'\r\n'`.
-- **`cellDelimiter`**: A 1-character-long `string` that separates values from one another. If parsing, defaults to autodetection. If encoding, defaults to `','`.
+- **`delimiter`**: A 1-character-long `string` that separates values from one another. If parsing, defaults to autodetection. If encoding, defaults to `','`.
 - **`header`**: `true` if the first row of the CSV contains header values, or supply your own `array`. Defaults to `false`.
 
 You can update an option's value any time after instantiation with `csv.set(option, value)`.
