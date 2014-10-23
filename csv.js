@@ -10,7 +10,7 @@
     return type === 'function' || type === 'object' && !!object;
   }
   function isArray(object) {
-    return toString.call(object) == '[object Array]';
+    return Array.isArray ? Array.isArray(object) : toString.call(object) == '[object Array]';
   }
   function isString(object) {
     return toString.call(object) === '[object String]';
