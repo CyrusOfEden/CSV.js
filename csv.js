@@ -9,20 +9,14 @@
     var type = typeof object;
     return type === 'function' || type === 'object' && !!object;
   }
-  if (Array.isArray) {
-    function isArray(object) {
-      return Array.isArray(object);
-    }
-  } else {
-    function isArray(object) {
-      return toString.call(object) == '[object Array]';
-    }
+  var isArray = Array.isArray || function(object) {
+    return toString.call(object) === '[object Array]';
   }
   function isString(object) {
-    return typeof object === 'string' || toString.call(object) === '[object String]';
+    return typeof object === 'string';
   }
-  function isNumber(value) {
-    return !isNaN(Number(value));
+  function isNumber(object) {
+    return !isNaN(Number(object));
   }
   function isBoolean(value) {
     return value == false || value == true;
@@ -34,22 +28,14 @@
     return value != null;
   }
 
-  function range(n) {
-    return Array.apply(null, Array(n)).map(function (_, i) { return i; });
-  }
-
   function fallback(value, fallback) {
     return isPresent(value) ? value : fallback;
   }
 
   function forEach(collection, iterator) {
-    var currentIndex = 0,
-        collectionLength = collection.length;
-    while (currentIndex < collectionLength) {
-      if (iterator(collection[currentIndex], currentIndex) === false) break;
-      currentIndex++;
+    for (var _i = 0, _len = collection.length; _i < _len; _i += 1) {
+      if (iterator(collection[_i], _i) === false) break;
     }
-    return collection;
   }
 
   function buildCell(index) {
@@ -206,8 +192,6 @@
         current.line = [];
       }
 
-      resetFlags();
-
       function saveCell(cell) {
         current.line.push(flag.escaped ? cell.slice(1, -1).replace(/""/g, '"') : cell);
         resetCell();
@@ -234,38 +218,38 @@
         }
       }
 
-      if (options.lineDelimiter.length == 1) {
-        saveLastCell = saveCell;
-      }
+      if (options.lineDelimiter.length == 1) saveLastCell = saveCell;
 
       var dataLength = data.length,
           cellDelimiter = options.cellDelimiter.charCodeAt(0),
           lineDelimiter = options.lineDelimiter.charCodeAt(options.lineDelimiter.length - 1),
-          currentIndex, cellStart, currentChar;
+          _i, _c, _ch;
 
-      for (currentIndex = 0, cellStart = 0; currentIndex < dataLength; currentIndex++) {
-        currentChar = data.charCodeAt(currentIndex);
+      resetFlags();
+
+      for (_i = 0, _c = 0; _i < dataLength; _i++) {
+        _ch = data.charCodeAt(_i);
 
         if (flag.cell) {
           flag.cell = false;
-          if (currentChar == 34) {
+          if (_ch == 34) {
             flag.escaped = true;
             continue;
           }
         }
 
-        if (flag.escaped && currentChar == 34) {
+        if (flag.escaped && _ch == 34) {
           flag.quote = !flag.quote;
           continue;
         }
 
         if ((flag.escaped && flag.quote) || !flag.escaped) {
-          if (currentChar == cellDelimiter) {
-            saveCell(current.cell + data.slice(cellStart, currentIndex));
-            cellStart = currentIndex + 1;
-          } else if (currentChar == lineDelimiter) {
-            saveLastCell(current.cell + data.slice(cellStart, currentIndex));
-            cellStart = currentIndex + 1;
+          if (_ch == cellDelimiter) {
+            saveCell(current.cell + data.slice(_c, _i));
+            _c = _i + 1;
+          } else if (_ch == lineDelimiter) {
+            saveLastCell(current.cell + data.slice(_c, _i));
+            _c = _i + 1;
             saveLine();
             resetLine();
           }

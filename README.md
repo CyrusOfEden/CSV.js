@@ -3,7 +3,7 @@ CSV.js
 
 Simple, blazing-fast CSV parsing/encoding in JavaScript. Full [RFC 4180](http://tools.ietf.org/html/rfc4180) compliance.
 
-Compatible with browsers, AMD, and NodeJS.
+Compatible with browsers (>IE8), AMD, and NodeJS.
 
 
 Installation
@@ -12,8 +12,6 @@ Installation
 Download `csv.min.js` and reference to it using your preferred method.
 
 If you use **Bower**, or **npm**, install the `comma-separated-values` package.
-
-**Browser Compatability**: IE9 and above.
 
 
 Instantiation
