@@ -13,6 +13,8 @@ Download `csv.min.js` and reference to it using your preferred method.
 
 If you use **Bower**, or **npm**, install the `comma-separated-values` package.
 
+**Browser Compatability**: IE9 and above.
+
 
 Instantiation
 -------------

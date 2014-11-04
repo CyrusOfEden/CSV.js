@@ -9,11 +9,17 @@
     var type = typeof object;
     return type === 'function' || type === 'object' && !!object;
   }
-  function isArray(object) {
-    return Array.isArray ? Array.isArray(object) : toString.call(object) == '[object Array]';
+  if (Array.isArray) {
+    function isArray(object) {
+      return Array.isArray(object);
+    }
+  } else {
+    function isArray(object) {
+      return toString.call(object) == '[object Array]';
+    }
   }
   function isString(object) {
-    return toString.call(object) === '[object String]';
+    return typeof object === 'string' || toString.call(object) === '[object String]';
   }
   function isNumber(value) {
     return !isNaN(Number(value));
