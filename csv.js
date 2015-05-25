@@ -38,6 +38,10 @@
     }
   }
 
+  function sanitizeString(string) {
+    return string.replace(/"/g,'\\"');
+  }
+
   function buildCell(index) {
     return 'attrs[' + index + ']';
   }
@@ -75,16 +79,16 @@
       if (cast) {
         if (isArray(cast)) {
           forEach(values, function(value, index) {
-            definition.push('"' + attrs[index] + '": ' + cast[index] + '(' + buildCell(index) + ')');
+            definition.push('"' + sanitizeString(attrs[index]) + '": ' + cast[index] + '(' + buildCell(index) + ')');
           });
         } else {
           forEach(values, function(value, index) {
-            definition.push('"' + attrs[index] + '": ' + castCell(value, index));
+            definition.push('"' + sanitizeString(attrs[index]) + '": ' + castCell(value, index));
           });
         }
       } else {
         forEach(values, function(value, index) {
-          definition.push('"' + attrs[index] + '": ' + buildCell(index));
+          definition.push('"' + sanitizeString(attrs[index]) + '": ' + buildCell(index));
         });
       }
       definition = 'return {' + definition.join(',') + '}';
