@@ -1,5 +1,6 @@
 var CSV = require("./csv"),
     assert = require("assert"),
+    deepEqual = require("deep-equal"),
     fs = require("fs"),
 
     sets = ["marriage_census", "worldbank"],
@@ -56,6 +57,23 @@ describe("CSV", function() {
         assert.deepEqual(data[set].json, new CSV(data[set].csv, { header: true }).parse());
       });
     });
+    it("should parse with headers and cast", function() {
+      var expected = [{ name: "Will", age: 32, tel: "1009999" }],
+          actual = "name,age,tel\r\nWill,32,1009999\r\n";
+      assert.ok(deepEqual(expected, new CSV(actual, { header: true, cast: ["String", "Number", "String"] }).parse(), {strict: true}));
+    });
+    it("should parse with cast", function() {
+      var expected = [["123", 456], ["", 0]],
+          actual = "123,456\r\n,\r\n";
+      assert.deepEqual(expected, new CSV(actual, { cast: ["String", "Number"] }).parse());
+    });
+    it("should parse with custom cast", function() {
+      var customFunc = function(val) { return val === '' ? null : String(val); },
+          options = { cast: [customFunc, customFunc] },
+          expected = [["123", "456"], [null, ""]],
+          actual = "123,456\r\n,\r\n";
+      assert.deepEqual(expected, new CSV(actual, { cast: [customFunc, "String"] }).parse());
+    });
   });
 
   describe("#encode()", function() {
@@ -99,6 +117,19 @@ describe("CSV", function() {
       sets.forEach(function(set) {
         assert.deepEqual(data[set].csv, new CSV(data[set].json, options).encode());
       });
+    });
+    it("should encode with cast", function() {
+      var options = { cast: ["String", "Primitive"] },
+          expected = "\"123\",\r\n\"null\",456",
+          actual = [["123", null], [null, "456"]];
+      assert.deepEqual(expected, new CSV(actual, options).encode());
+    });
+    it("should encode with custom cast", function() {
+      var customFunc = function(val) { return val === null ? '' : this.string(val); },
+          options = { cast: [customFunc, customFunc] },
+          expected = "\"123\",\r\n,\"456\"",
+          actual = [["123", null], [null, "456"]];
+      assert.deepEqual(expected, new CSV(actual, options).encode());
     });
   });
 
