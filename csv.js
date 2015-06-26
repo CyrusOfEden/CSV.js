@@ -56,13 +56,18 @@
     }
   }
 
-  function buildConstructor(cast, values, attrs) {
+  function buildConstructor(deserialize, cast, values, attrs) {
     var definition = [];
-    if (arguments.length == 2) {
+    if (arguments.length == 3) {
       if (cast) {
         if (isArray(cast)) {
           forEach(values, function(value, index) {
-            definition.push(cast[index] + '(' + buildCell(index) + ')');
+            if (isString(cast[index])) {
+              cast[index] = cast[index].toLowerCase();
+            } else {
+              deserialize[cast[index]] = cast[index];
+            }
+            definition.push('deserialize[cast[' + index + ']](' + buildCell(index) + ')');
           });
         } else {
           forEach(values, function(value, index) {
@@ -79,7 +84,12 @@
       if (cast) {
         if (isArray(cast)) {
           forEach(values, function(value, index) {
-            definition.push('"' + sanitizeString(attrs[index]) + '": ' + cast[index] + '(' + buildCell(index) + ')');
+            if (isString(cast[index])) {
+              cast[index] = cast[index].toLowerCase();
+            } else {
+              deserialize[cast[index]] = cast[index];
+            }
+            definition.push('"' + sanitizeString(attrs[index]) + '": deserialize[cast[' + index + ']](' + buildCell(index) + ')');
           });
         } else {
           forEach(values, function(value, index) {
@@ -93,7 +103,7 @@
       }
       definition = 'return {' + definition.join(',') + '}';
     }
-    return new Function('attrs', definition);
+    return new Function('attrs', 'deserialize', 'cast', definition);
   }
 
   function detectDelimiter(string, delimiters) {
@@ -147,8 +157,8 @@
       }
     }
 
-    function invoke(method, constructor, attributes) {
-      method(new constructor(attributes));
+    function invoke(method, constructor, attributes, deserialize, cast) {
+      method(new constructor(attributes, deserialize, cast));
     }
 
     function normalizeCSV(text, lineDelimiter) {
@@ -177,6 +187,7 @@
           options = this.options,
           header = options.header,
           current = { cell: '', line: [] },
+          deserialize = this.deserialize,
           flag, record, response;
 
       if (!callback) {
@@ -207,17 +218,17 @@
       function saveLine() {
         if (header) {
           if (isArray(header)) {
-            record = buildConstructor(options.cast, current.line, header);
-            saveLine = function() { invoke(callback, record, current.line); };
+            record = buildConstructor(deserialize, options.cast, current.line, header);
+            saveLine = function() { invoke(callback, record, current.line, deserialize, options.cast); };
             saveLine();
           } else {
             header = current.line;
           }
         } else {
           if (!record) {
-            record = buildConstructor(options.cast, current.line);
+            record = buildConstructor(deserialize, options.cast, current.line);
           }
-          saveLine = function() { invoke(callback, record, current.line); };
+          saveLine = function() { invoke(callback, record, current.line, deserialize, options.cast); };
           saveLine();
         }
       }
@@ -278,6 +289,18 @@
         return 'null';
       } else {
         return 'primitive';
+      }
+    }
+
+    CSV.prototype.deserialize = {
+      "string": function(string) {
+        return String(string);
+      },
+      "number": function(number) {
+        return Number(number);
+      },
+      "boolean": function(b) {
+        return Boolean(b);
       }
     }
 
@@ -350,7 +373,12 @@
         if (isArray(options.cast)) {
           map = Array(options.cast.length);
           forEach(options.cast, function(type, index) {
-            map[index] = type.toLowerCase();
+            if (isString(type)) {
+              map[index] = type.toLowerCase();
+            } else {
+              map[index] = type;
+              serialize[type] = type;
+            }
           });
         } else {
           map = Array(sample.length);
@@ -370,7 +398,12 @@
         if (isArray(options.cast)) {
           map = Array(options.cast.length);
           forEach(options.cast, function(type, index) {
-            map[index] = type.toLowerCase();
+            if (isString(type)) {
+              map[index] = type.toLowerCase();
+            } else {
+              map[index] = type;
+              serialize[type] = type;
+            }
           });
         } else {
           map = Array(attributes.length);
