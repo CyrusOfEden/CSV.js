@@ -1,4 +1,12 @@
-(function() {
+(function(root, factory) {
+  if (typeof define === "function" && define.amd) {
+    define([], factory);
+  } else if (typeof module === "object" && module.exports) {
+    module.exports = factory();
+  } else {
+    root.CSV = factory();
+  }
+}(this, function() {
   'use strict';
 
   var ESCAPE_DELIMITERS = ['|', '^'],
@@ -449,13 +457,5 @@
     return new CSV(data, options).forEach(callback);
   }
 
-  if (typeof define === "function" && define.amd) {
-    define('CSV', [], function() {
-      return CSV;
-    });
-  } else if (typeof module === "object" && module.exports) {
-    module.exports = CSV;
-  } else if (window) {
-    window.CSV = CSV;
-  }
-})();
+  return CSV;
+}));
