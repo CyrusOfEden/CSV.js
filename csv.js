@@ -188,7 +188,6 @@
 
     CSV.prototype.parse = function(callback) {
       if (this.mode != 'parse') return;
-
       if (this.data.trim().length === 0) return [];
 
       var data = this.data,
@@ -227,7 +226,9 @@
         if (header) {
           if (isArray(header)) {
             record = buildConstructor(deserialize, options.cast, current.line, header);
-            saveLine = function() { invoke(callback, record, current.line, deserialize, options.cast); };
+            saveLine = function() {
+              invoke(callback, record, current.line, deserialize, options.cast);
+            };
             saveLine();
           } else {
             header = current.line;
@@ -236,7 +237,9 @@
           if (!record) {
             record = buildConstructor(deserialize, options.cast, current.line);
           }
-          saveLine = function() { invoke(callback, record, current.line, deserialize, options.cast); };
+          saveLine = function() {
+            invoke(callback, record, current.line, deserialize, options.cast);
+          };
           saveLine();
         }
       }
@@ -273,7 +276,9 @@
           } else if (_ch == lineDelimiter) {
             saveLastCell(current.cell + data.slice(_c, _i));
             _c = _i + 1;
-            saveLine();
+            if (current.line.length > 1 || current.line[0] !== "") {
+              saveLine();
+            }
             resetLine();
           }
         }
