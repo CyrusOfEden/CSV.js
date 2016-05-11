@@ -1,11 +1,11 @@
 {
   "name": "comma-separated-values",
-  "version": "3.6.4",
+  "version": "4.0.0",
   "description": "Simple, blazing-fast CSV parsing/encoding in JavaScript. Full RFC 4180 compliance.",
   "main": "csv.js",
   "scripts": {
     "test": "mocha test.js",
-    "benchmark": "node benchmark.js"
+    "bench": "node benchmark.js"
   },
   "repository": {
     "type": "git",
@@ -21,15 +21,15 @@
     "tsv encode",
     "tsv rfc"
   ],
-  "author": "= <hi@knrz.co> (http://knrz.co/)",
+  "author": "Kash Nouroozi <hi@knrz.co> (http://knrz.co/)",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/knrz/CSV.js/issues"
   },
   "homepage": "https://github.com/knrz/CSV.js",
   "devDependencies": {
-    "benchmark": "~1.0.0",
-    "deep-equal": "~1.0.0",
-    "mocha": "~1.20.1"
+    "benchmark": "~2.1.0",
+    "deep-equal": "~1.0.1",
+    "mocha": "~2.4.5"
   }
 }
