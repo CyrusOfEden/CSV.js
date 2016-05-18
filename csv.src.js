@@ -252,9 +252,7 @@
     return true;
   }
 
-  let CSV = {};
-
-  CSV.parse = function parse(text, opts, fn) {
+  function read(text, opts, fn) {
     let rows;
 
     if (getType(opts) === "Function") {
@@ -275,9 +273,9 @@
 
     return (text.indexOf(quoteMark) === -1 ? unsafeParse : safeParse)(text, opts, fn) &&
            (rows.length > 0 ? rows : true);
-  };
+  }
 
-  CSV.encode = function encode(coll, opts, fn) {
+  function write(coll, opts, fn) {
     let lines;
 
     if (getType(opts) === "Function") {
@@ -296,8 +294,13 @@
 
     return (getType(coll[0]) === "Array" ? encodeArrays : encodeObjects)(coll, opts, fn) &&
            (lines.length > 0 ? lines.join(opts.newline) : true);
-  };
+  }
 
-  return CSV;
+  return {
+    read: read,
+    parse: read,
+    write: write,
+    encode: write
+  };
 }));
 
