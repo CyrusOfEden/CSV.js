@@ -4,6 +4,7 @@
   "description": "Simple, blazing-fast CSV parsing/encoding in JavaScript. Full RFC 4180 compliance.",
   "main": "csv.js",
   "scripts": {
+    "repl": "node -e \"let {CSV,data,reload} = require('./repl')\" -i",
     "build": "buble csv.src.js > csv.js",
     "test": "mocha test.js",
     "bench": "node benchmark.js"
