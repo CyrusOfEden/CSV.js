@@ -29,25 +29,23 @@ describe("CSV", function() {
                           '1,2,"3\n4"'];
 
             expected.map(function(expect, index) {
-                assert.deepEqual(expect, CSV.parse(actual[index]));
+                assert.deepEqual(CSV.parse(actual[index]), expect);
             });
         });
         it("should parse with no headers", function() {
             let expected = [["1", "2", "3", "4"],
                             ["5", "6", "7", "8"]];
             let actual = '1,2,3,4\r\n5,6,7,8\r\n';
-            assert.deepEqual(expected, CSV.parse(actual));
+            assert.deepEqual(CSV.parse(actual), expected);
         });
         it("should parse with headers", function() {
-            let expected = [{ name: "Will", age: 32 }];
+            let expected = [{ name: "Will", age: "32" }];
             let actual = "name,age\r\nWill,32\r\n";
-            assert.deepEqual(expected, CSV.parse(actual, {
-                header: true
-            }));
+            assert.deepEqual(CSV.parse(actual, { header: true }), expected);
         });
         it("should parse files", function() {
             sets.forEach(function(set) {
-                assert.deepEqual(data[set].json, CSV.parse(data[set].csv, { header: true }));
+                assert.deepEqual(CSV.parse(data[set].csv, { header: true }), data[set].json);
             });
         });
     });

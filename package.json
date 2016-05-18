@@ -4,6 +4,7 @@
   "description": "Simple, blazing-fast CSV parsing/encoding in JavaScript. Full RFC 4180 compliance.",
   "main": "csv.js",
   "scripts": {
+    "build": "buble csv.src.js > csv.js",
     "test": "mocha test.js",
     "bench": "node benchmark.js"
   },
@@ -28,8 +29,11 @@
   },
   "homepage": "https://github.com/knrz/CSV.js",
   "devDependencies": {
+    "babyparse": "^0.4.6",
     "benchmark": "~2.1.0",
+    "buble": "^0.8.4",
     "deep-equal": "~1.0.1",
-    "mocha": "~2.4.5"
+    "mocha": "~2.4.5",
+    "require-reload": "^0.2.2"
   }
 }
