@@ -9,6 +9,8 @@ Compatible with browsers (>IE8), AMD, and NodeJS.
 Installation
 ------------
 
+**MASTER is currently under development. As such, `csv.src.js` and `csv.js` are both unusable. Make sure you download `csv.min.js`.**
+
 Download `csv.min.js` and reference to it using your preferred method.
 
 If you use **Bower**, or **npm**, install the `comma-separated-values` package.
