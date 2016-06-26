@@ -200,7 +200,7 @@
       if (row[i].indexOf(quoteMark) !== -1) {
         row[i] = row[i].replace(quoteRegex, doubleQuoteMark);
       }
-      if (row[i].indexOf(delimiter !== -1) || row[i].indexOf(newline) !== -1) {
+      if (row[i].indexOf(delimiter) !== -1 || row[i].indexOf(newline) !== -1) {
         row[i] = quoteMark + row[i] + quoteMark;
       }
     }
