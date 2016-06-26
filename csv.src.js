@@ -35,6 +35,7 @@
   const quoteMark = '"';
   const doubleQuoteMark = '""';
   const quoteRegex = /"/g;
+  const doubleQuoteRegex = /""/g;
 
   /* =========================================
    * Utility Functions =======================
@@ -162,32 +163,87 @@
     return true;
   }
 
+  let iota = (() => {
+    let n = 0;
+    return () => n++;
+  })();
+
   function safeParse(text, opts, fn) {
     let delimiter = opts.delimiter;
     let newline = opts.newline;
 
-    let lines = text.split(newline);
-    if (opts.skip > 0) {
-      lines.splice(opts.skip);
+    let skip = opts.skip;
+
+    let EOL = iota();
+    let EOF = iota();
+    let cur = 0;
+    let curLine = 0;
+    let len = text.length;
+
+    let eolNext;
+
+    function nextToken() {
+      if (cur >= len) {
+        return EOF;
+      }
+      if (eolNext) {
+        eolNext = false;
+        return EOL;
+      }
+      let mark = cur;
+      let n;
+      if (text[cur] === quoteMark) {
+        while (cur++ < len) {
+          if (text[cur] === quoteMark) {
+            if (text[cur+1] !== quoteMark) {
+              break;
+            }
+            cur += 1;
+          }
+        }
+        cur += 2;
+        n = text[cur+1];
+        if (n === newline[0]) {
+          eol = true;
+          if (newlineLen > 1 && text[cur+2] === newline[1]) cur++;
+        } else if (n === newline[1]) {
+          eol = true;
+        }
+
+        return text.slice(mark + 1, cur).replace(doubleQuoteRegex, quoteMark);
+      }
+
+      while (cur < len) {
+        let delta = 1;
+        n = text[cur++];
+        if (n === newline[0]) {
+          eol = true;
+          if (text[cur] === newline[1]) {
+            cur++;
+            delta++;
+          }
+        }
+        return text.slice(mark, cur - delta);
+      }
+
+      return text.slice(mark);
     }
 
-    // for (let cur = 0, lim = getLimit(opts.limit, lines.length); cur < lim; cur++) {
-    //   let line = lines[cur];
-    //   if (frequency(line, quoteMark) % 2 !== 0) {
-    //     line += lines.splice(cur + 1, 1)[0];
-    //     cur -= 1;
-    //     continue;
-    //   }
-    //   let cells = line.split(delimiter);
-    //   for (let cell = 0, len = cells.length; cell < len; cell++) {
-    //     if (frequency(cell, quoteMark) % 2 !== 0) {
-    //       cell += cells.splice(cur + 1, 1)[0];
-    //       cell -= 1;
-    //       continue;
-    //     }
-    //   }
-    //   fn(cells);
-    // }
+    let row;
+    for (let token = nextToken(); token !== EOF; token = nextToken()) {
+      if (skip-- > 0) {
+        while (token !== EOL && token !== EOF) {
+          token = nextToken();
+        }
+      }
+
+      row = [];
+      while (token !== EOL && token !== EOF) {
+        row.push(token);
+        token = nextToken();
+      }
+      fn(row);
+    }
 
     return true;
   }
@@ -195,10 +251,13 @@
   function encodeCells(line, delimiter, newline) {
     let row = line.slice(0);
     for (let i = 0, len = row.length; i < len; i++) {
+      if (typeof row[i] !== "string") {
+        continue;
+      }
       if (row[i].indexOf(quoteMark) !== -1) {
         row[i] = row[i].replace(quoteRegex, doubleQuoteMark);
       }
-      if (row[i].indexOf(delimiter !== -1) || row[i].indexOf(newline) !== -1) {
+      if (row[i].indexOf(delimiter) !== -1 || row[i].indexOf(newline) !== -1) {
         row[i] = quoteMark + row[i] + quoteMark;
       }
     }

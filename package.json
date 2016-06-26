@@ -33,6 +33,7 @@
     "babyparse": "^0.4.6",
     "benchmark": "~2.1.0",
     "buble": "^0.8.4",
+    "d3-dsv": "^0.3.2",
     "deep-equal": "~1.0.1",
     "mocha": "~2.4.5",
     "require-reload": "^0.2.2"
