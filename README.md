@@ -49,7 +49,7 @@ var csv = new CSV(data, [options]);
 // It will otherwise fail silently.
 var encoded = csv.encode();
 
-// If the data you've suopplied is a string,
+// If the data you've supplied is a string,
 // CSV#parse will return the parsed CSV.
 // It will otherwise fail silently.
 var parsed = csv.parse();
